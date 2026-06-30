@@ -1,5 +1,13 @@
 import os
 import tempfile
+import asyncio
+import logging
+
+# Set Cognee data directories before importing cognee to avoid sqlite permission/path issues in .venv
+os.environ["DATA_DIR"] = os.path.abspath("./.cognee_system")
+os.environ["COGNEE_SYSTEM_DIR"] = os.path.abspath("./.cognee_system")
+
+import cognee
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -7,13 +15,18 @@ from langchain_core.documents import Document
 from langchain_core.prompts import PromptTemplate
 from langchain_neo4j import Neo4jVector, Neo4jGraph, GraphCypherQAChain
 from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_experimental.graph_transformers import LLMGraphTransformer
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 class GraphService:
     def __init__(self):
         # Set Groq API key in environment for LangChain
         os.environ['GROQ_API_KEY'] = settings.groq_api_key
+        # For Cognee (if supported)
+        os.environ['LLM_API_KEY'] = settings.groq_api_key
         
         self.embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
         self.llm = ChatGroq(
@@ -87,25 +100,41 @@ class GraphService:
             validate_cypher=True
         )
 
-    def process_pdf(self, file_path: str, original_filename: str):
+    async def process_pdf(self, file_path: str, original_filename: str):
+        logger.info(f"Starting PDF processing for file: {original_filename}")
         loader = PyPDFLoader(file_path)
         pages = loader.load_and_split()
 
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=40)
         docs = text_splitter.split_documents(pages)
+        logger.info(f"Split PDF into {len(docs)} document chunks.")
 
         lc_docs = []
+        full_text = ""
         for doc in docs:
+            cleaned = doc.page_content.replace("\n", "")
+            full_text += cleaned + " "
             lc_docs.append(Document(
-                page_content=doc.page_content.replace("\n", ""),
+                page_content=cleaned,
                 metadata={'source': original_filename}
             ))
 
+        # Add to Cognee memory layer
+        try:
+            logger.info("Ingesting text into Cognee memory layer...")
+            await cognee.remember(full_text)
+            logger.info("Successfully added to Cognee memory layer.")
+        except Exception as e:
+            logger.error(f"Error with cognee.remember: {e}", exc_info=True)
+
         # Clear the graph database
+        logger.info("Clearing Neo4j graph database...")
         self.graph.query("MATCH (n) DETACH DELETE n;")
 
+        logger.info("Transforming documents to Neo4j Graph format...")
         graph_documents = self.transformer.convert_to_graph_documents(lc_docs)
         self.graph.add_graph_documents(graph_documents, include_source=True)
+        logger.info(f"Added {len(graph_documents)} graph documents to Neo4j.")
 
         # Add a common 'Entity' label to all allowed node types for unified vector indexing
         for label in self.allowed_nodes:
@@ -124,17 +153,104 @@ class GraphService:
             keyword_index_name="entity_index",
             search_type="hybrid"
         )
+        logger.info(f"Finished processing PDF: {original_filename}")
         return {"status": "success", "message": f"{original_filename} processed successfully."}
 
-    def query(self, question: str) -> str:
+    async def query(self, question: str) -> dict:
+        logger.info(f"Received query: '{question}'")
+        
+        graph_result = ""
         try:
+            logger.debug("Executing GraphCypherQAChain...")
             res = self.qa_chain.invoke({"query": question})
-            return res['result']
+            graph_result = res['result']
+            logger.info(f"Graph RAG response length: {len(graph_result)} characters")
         except Exception as e:
+            logger.warning(f"GraphCypherQAChain failed, falling back to LLM. Error: {e}")
             # Fallback for when the LLM refuses to generate a Cypher query (e.g. for general questions)
             from langchain_core.messages import HumanMessage
             response = self.llm.invoke([HumanMessage(content=question)])
+            graph_result = response.content
+            logger.info(f"LLM fallback response length: {len(graph_result)} characters")
+
+        cognee_result = ""
+        try:
+            logger.debug("Recalling from Cognee memory layer...")
+            results = await cognee.recall(query_text=question)
+            if results:
+                cognee_result = " ".join([r.text if hasattr(r, 'text') else str(r) for r in results])
+                logger.info(f"Cognee recall returned {len(results)} items (Total text length: {len(cognee_result)} characters)")
+            else:
+                logger.info("Cognee recall returned no results.")
+        except Exception as e:
+            logger.error(f"Error with cognee.recall: {e}", exc_info=True)
+            cognee_result = "Could not retrieve from memory layer."
+
+        logger.info("Query processing complete.")
+        return {
+            "graph_answer": graph_result,
+            "memory_answer": cognee_result
+        }
+
+    async def generate_visit_summary(self) -> str:
+        logger.info("Generating Doctor-Ready Visit Summary...")
+        
+        # 1. Gather context from Graph QA
+        try:
+            logger.debug("Gathering graph context for summary using a direct Cypher query...")
+            # We use a direct Cypher query to reliably get all context and avoid LLM parameter hallucination
+            direct_query = """
+            MATCH (n) 
+            WHERE n:Symptom OR n:Trigger OR n:Medication OR n:TreatmentOutcome OR n:LifestyleFactor
+            OPTIONAL MATCH (n)-[r]->(m)
+            RETURN labels(n) AS type, n.id AS name, type(r) AS relationship, m.id AS related_to
+            LIMIT 200
+            """
+            res = self.graph.query(direct_query)
+            graph_context = str(res)
+            if not res:
+                graph_context = "No structured data available."
+        except Exception as e:
+            logger.error(f"Failed to gather graph context for summary: {e}")
+            graph_context = "No structured data available."
+            
+        # 2. Gather context from Cognee
+        try:
+            logger.debug("Gathering cognee memory context for summary...")
+            cognee_results = await cognee.recall(query_text=question)
+            if cognee_results:
+                cognee_context = " ".join([r.text if hasattr(r, 'text') else str(r) for r in cognee_results])
+            else:
+                cognee_context = "No unstructured memory available."
+        except Exception as e:
+            logger.error(f"Failed to gather cognee context for summary: {e}")
+            cognee_context = ""
+            
+        # 3. Use Gemini to generate the final summary
+        from langchain_core.messages import HumanMessage, SystemMessage
+        sys_msg = SystemMessage(content="You are a professional medical assistant tasked with creating a 'Doctor-Ready Visit Summary' for a patient. Format the output professionally with clear headings such as Patient Overview, Symptoms, Triggers, Medications, Lifestyle Factors, and Treatment Outcomes.")
+        hum_msg = HumanMessage(content=f"Please generate the visit summary using the following aggregated patient data:\n\n### Structured Graph Data ###\n{graph_context}\n\n### Unstructured Memory Data ###\n{cognee_context}")
+        
+        try:
+            logger.debug("Invoking Gemini LLM to synthesize final summary...")
+            
+            gemini_api_key = settings.gemini_api_key or os.environ.get("GEMINI_API_KEY")
+            if not gemini_api_key:
+                logger.error("Gemini API key is not configured. Please set GEMINI_API_KEY in your .env file.")
+                return "Error: Gemini API key is missing. Please configure GEMINI_API_KEY."
+                
+            gemini_llm = ChatGoogleGenerativeAI(
+                model="gemini-3.1-pro-preview",
+                google_api_key=gemini_api_key,
+                temperature=0.2
+            )
+            
+            response = gemini_llm.invoke([sys_msg, hum_msg])
+            logger.info("Successfully generated Doctor-Ready Visit Summary with Gemini.")
             return response.content
+        except Exception as e:
+            logger.error(f"Error invoking Gemini for summary generation: {e}", exc_info=True)
+            raise
 
 # Singleton instance
 graph_service = GraphService()

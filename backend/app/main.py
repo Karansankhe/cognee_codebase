@@ -1,6 +1,13 @@
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints import router
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Graphy API", description="Realtime GraphRAG API", version="1.0.0")
 
@@ -13,3 +20,4 @@ app.add_middleware(
 )
 
 app.include_router(router, prefix="/api/v1")
+logger.info("Application started")
