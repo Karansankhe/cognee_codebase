@@ -12,7 +12,7 @@ import { DashboardHeader } from "../../features/dashboard/components/DashboardHe
 import { EvidenceList } from "../../features/dashboard/components/EvidenceList";
 import { EvaluationHarness } from "../../features/dashboard/components/EvaluationHarness";
 import { InsightCard } from "../../features/dashboard/components/InsightCard";
-import { MemoryGraphPreview } from "../../features/dashboard/components/MemoryGraphPreview";
+import { LiveGraphPanel } from "../../features/dashboard/components/LiveGraphPanel";
 import { PatientSnapshot } from "../../features/dashboard/components/PatientSnapshot";
 import { QuickActions } from "../../features/dashboard/components/QuickActions";
 import { TreatmentEffectivenessPanel } from "../../features/dashboard/components/TreatmentEffectivenessPanel";
@@ -161,11 +161,7 @@ export function DashboardPage() {
 
           <div className="grid min-h-0 content-start gap-4">
             <InsightCard pattern={data.activePattern} />
-            <MemoryGraphPreview
-              edges={data.graph.edges}
-              insights={data.graph.insights}
-              nodes={data.graph.nodes}
-            />
+            <LiveGraphPanel />
             <QuickActions
               onAddOutcome={() => setActiveModal("outcome")}
               onLogSymptom={() => setActiveModal("symptom")}
