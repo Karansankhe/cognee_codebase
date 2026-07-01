@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { AppShell } from "../../components/layout/AppShell";
-import { getDashboardData } from "../../features/dashboard/api/dashboard.api";
+import {
+  getDashboardData,
+  syncWearablePattern,
+} from "../../features/dashboard/api/dashboard.api";
 import { ConfidencePanel } from "../../features/dashboard/components/ConfidencePanel";
 import { DataControlsPanel } from "../../features/dashboard/components/DataControlsPanel";
 import {
@@ -46,6 +49,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     null,
   );
   const [language, setLanguage] = useState("English");
+  const [isSyncingWearable, setIsSyncingWearable] = useState(false);
   const [symptomForm, setSymptomForm] = useState(initialSymptomForm);
   const [outcomeForm, setOutcomeForm] = useState(initialOutcomeForm);
 
@@ -146,6 +150,48 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     });
   };
 
+  const handleWearableSync = async () => {
+    setIsSyncingWearable(true);
+
+    try {
+      const pattern = await syncWearablePattern();
+
+      setData((currentData) => {
+        if (!currentData) {
+          return currentData;
+        }
+
+        return {
+          ...currentData,
+          activePattern: {
+            ...currentData.activePattern,
+            symptom: pattern.symptom,
+            summary: pattern.summary,
+            triggerCandidates: pattern.triggerCandidates,
+            treatmentMemory: pattern.treatmentMemory,
+            updatedAt: "Updated just now",
+          },
+          timeline: [
+            {
+              description: pattern.summary,
+              id: `wearable-sync-${Date.now()}`,
+              languageCode: "EN",
+              occurredAt: "Just now",
+              source: "Connected watch",
+              title: "Health pattern updated",
+              type: "wearable",
+            },
+            ...currentData.timeline,
+          ],
+        };
+      });
+    } catch (error) {
+      console.error("Wearable update failed", error);
+    } finally {
+      setIsSyncingWearable(false);
+    }
+  };
+
   return (
     <AppShell activePage="Dashboard" onNavigate={onNavigate}>
       <DashboardHeader language={language} onLanguageChange={setLanguage} />
@@ -155,6 +201,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             <PatientSnapshot
               patient={data.patient}
               dataSources={data.dataSources}
+              isSyncingWearable={isSyncingWearable}
+              onWearableSync={handleWearableSync}
             />
             <WearableSummaryPanel summary={data.wearableSummary} />
             <TimelineFeed entries={data.timeline} />
