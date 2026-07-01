@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 
 interface AppShellProps {
+  activePage?: string;
   children: ReactNode;
+  onNavigate?: (page: string) => void;
 }
 
 const navItems = [
@@ -14,7 +16,11 @@ const navItems = [
   "Data controls",
 ];
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({
+  activePage = "Dashboard",
+  children,
+  onNavigate,
+}: AppShellProps) {
   return (
     <div className="min-h-screen bg-pulse-canvas p-3 font-sans text-pulse-ink">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -44,15 +50,16 @@ export function AppShell({ children }: AppShellProps) {
               <button
                 key={item}
                 className={`flex w-full items-center gap-3 rounded-full px-3 py-2.5 text-left text-sm font-medium transition ${
-                  item === "Dashboard"
+                  item === activePage
                     ? "bg-white text-pulse-ink shadow-sm"
                     : "text-pulse-muted hover:bg-white/60 hover:text-pulse-ink"
                 }`}
+                onClick={() => onNavigate?.(item)}
                 type="button"
               >
                 <span
                   className={`h-2 w-2 shrink-0 rounded-full ${
-                    item === "Dashboard" ? "bg-pulse-ink" : "bg-pulse-muted/40"
+                    item === activePage ? "bg-pulse-ink" : "bg-pulse-muted/40"
                   }`}
                 />
                 <span className="opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100">
