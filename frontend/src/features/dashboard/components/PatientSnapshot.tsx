@@ -17,6 +17,12 @@ const statusTone: Record<DataSourceStatus, "green" | "blue" | "amber"> = {
   attention: "amber",
 };
 
+const statusLabel: Record<DataSourceStatus, string> = {
+  connected: "connected",
+  syncing: "updating",
+  attention: "needs review",
+};
+
 export function PatientSnapshot({ patient, dataSources }: PatientSnapshotProps) {
   return (
     <Card className="bg-white/70">
@@ -53,13 +59,15 @@ export function PatientSnapshot({ patient, dataSources }: PatientSnapshotProps) 
             >
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-medium leading-5">{source.name}</p>
-                <Badge tone={statusTone[source.status]}>{source.status}</Badge>
+                <Badge tone={statusTone[source.status]}>
+                  {statusLabel[source.status]}
+                </Badge>
               </div>
               <p className="mt-0.5 line-clamp-1 text-xs leading-4 text-pulse-muted">
                 {source.description}
               </p>
               <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-pulse-muted">
-                Last sync: {source.lastSyncedAt}
+                Last update: {source.lastSyncedAt}
               </p>
             </div>
           ))}
