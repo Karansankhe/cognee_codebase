@@ -45,7 +45,7 @@ export function TrendsPanel({ trends: defaultTrends }: TrendsPanelProps) {
         body: JSON.stringify(displayData),
       });
       if (!response.ok) throw new Error("PDF generation failed");
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -65,9 +65,9 @@ export function TrendsPanel({ trends: defaultTrends }: TrendsPanelProps) {
 
   return (
     <Card className="bg-[linear-gradient(135deg,rgba(255,255,255,0.84),rgba(216,251,100,0.14))]">
-      <CardHeader 
-        title="Temporal Trends" 
-        eyebrow="Seasonal view" 
+      <CardHeader
+        title="Temporal Trends"
+        eyebrow="Seasonal view"
         action={
           <button
             onClick={handleDownloadPDF}

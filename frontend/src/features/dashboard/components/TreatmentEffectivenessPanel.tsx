@@ -29,7 +29,7 @@ export function TreatmentEffectivenessPanel({
         </div>
         <p className="text-xs leading-5 text-pulse-muted">
           Measures how often the remembered treatment was followed by reduced
-          symptom severity for this patient.
+          symptom severity after similar wearable conditions.
         </p>
         <div className="rounded-[16px] bg-white p-3">
           <p className="text-xs font-semibold text-pulse-muted">Sample size</p>

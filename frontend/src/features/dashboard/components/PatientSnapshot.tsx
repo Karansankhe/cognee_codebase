@@ -51,10 +51,10 @@ export function PatientSnapshot({ patient: defaultPatient, dataSources, onWearab
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pulse-ink text-sm font-semibold text-white uppercase">
             {patientInfo.name
               ? patientInfo.name
-                  .split(" ")
-                  .map((part) => part[0])
-                  .join("")
-                  .substring(0, 2)
+                .split(" ")
+                .map((part) => part[0])
+                .join("")
+                .substring(0, 2)
               : "NA"}
           </div>
           <div className="min-w-0">
@@ -78,9 +78,10 @@ export function PatientSnapshot({ patient: defaultPatient, dataSources, onWearab
         </div>
 
         <div className="space-y-2">
-          {dataSources.map((source) => {
-            const isWearable = source.name.toLowerCase().includes("wearable");
-            
+        {dataSources.map((source) => {
+            // Show sync button for any data source in "syncing" state (wearables, phone apps, etc.)
+            const isSyncable = source.status === "syncing";
+
             return (
               <div
                 key={source.id}
@@ -88,18 +89,17 @@ export function PatientSnapshot({ patient: defaultPatient, dataSources, onWearab
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-medium leading-5">{source.name}</p>
-                  
-                  {isWearable ? (
+
+                  {isSyncable ? (
                     <button
                       onClick={onWearableSync}
                       disabled={isSyncingWearable}
-                      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wider transition-all ${
-                        isSyncingWearable 
-                          ? "bg-blue-100 text-blue-700 opacity-70 cursor-not-allowed" 
-                          : "bg-white border border-pulse-line hover:bg-pulse-green/20"
-                      }`}
+                      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wider transition-all ${isSyncingWearable
+                          ? "bg-blue-100 text-blue-700 opacity-70 cursor-not-allowed"
+                          : "bg-white border border-pulse-line hover:bg-pulse-green/20 cursor-pointer"
+                        }`}
                     >
-                      {isSyncingWearable ? <><Loader2 className="h-3 w-3 animate-spin"/> syncing</> : "sync"}
+                      {isSyncingWearable ? <><Loader2 className="h-3 w-3 animate-spin" /> syncing</> : "sync"}
                     </button>
                   ) : (
                     <Badge tone={statusTone[source.status]}>{source.status}</Badge>
@@ -109,7 +109,7 @@ export function PatientSnapshot({ patient: defaultPatient, dataSources, onWearab
                   {source.description}
                 </p>
                 <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-pulse-muted">
-                  Last sync: {isWearable && isSyncingWearable ? "SYNCING..." : source.lastSyncedAt}
+                  Last sync: {isSyncable && isSyncingWearable ? "SYNCING..." : source.lastSyncedAt}
                 </p>
               </div>
             );

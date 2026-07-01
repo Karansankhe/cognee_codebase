@@ -105,8 +105,8 @@ export function MemoryGraphPreview({
             </span>
           ) : null
         }
-        title="Cognee Memory Graph"
-        eyebrow="Personal pattern map"
+        title="Health Memory Map"
+        eyebrow="Personal patterns"
       />
       <CardBody>
         <div className="relative h-[360px] overflow-hidden rounded-[24px] border border-pulse-line/70 bg-[#fbfcf7]">
@@ -164,10 +164,10 @@ export function MemoryGraphPreview({
             precedes 92%
           </span>
           <span className="absolute left-[24%] bottom-[35%] rounded-full bg-white px-3 py-1 text-xs font-medium text-pulse-muted shadow-sm">
-            triggers 86%
+            correlates 86%
           </span>
           <span className="absolute left-[42%] top-[30%] rounded-full bg-white px-3 py-1 text-xs font-medium text-pulse-muted shadow-sm">
-            correlates
+            precedes
           </span>
           <span className="absolute right-[29%] top-[43%] rounded-full bg-white px-3 py-1 text-xs font-medium text-pulse-muted shadow-sm">
             alleviates

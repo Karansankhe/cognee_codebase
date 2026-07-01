@@ -10,7 +10,7 @@ export function ConfidencePanel({ pattern }: ConfidencePanelProps) {
 
   return (
     <Card className="bg-[linear-gradient(145deg,rgba(255,255,255,0.9),rgba(216,251,100,0.12))]">
-      <CardHeader title="Trigger Confidence" eyebrow="Personal pattern" />
+      <CardHeader title="Risk Confidence" eyebrow="Historical match" />
       <CardBody className="space-y-3">
         <div className="flex items-center gap-3">
           <div
@@ -31,8 +31,8 @@ export function ConfidencePanel({ pattern }: ConfidencePanelProps) {
               {score}%
             </p>
             <p className="mt-1 line-clamp-2 text-xs leading-4 text-pulse-muted">
-              Measures how reliably the trigger appeared before this symptom in
-              this patient's own comparable episodes.
+              Measures how reliably wearable conditions appeared before this
+              symptom in this patient's comparable episodes.
             </p>
           </div>
         </div>

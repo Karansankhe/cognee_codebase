@@ -18,8 +18,8 @@ const relationshipTone: Record<
 export function EvidenceList({ citations }: EvidenceListProps) {
   return (
     <Card className="bg-white/60">
-      <CardHeader title="Past Entries" eyebrow="Source history" />
-      <CardBody className="h-full">
+      <CardHeader title="Past Entries" eyebrow="Audit-ready history" />
+      <CardBody>
         <div className="space-y-2">
           {citations.slice(0, 3).map((citation) => (
             <article
