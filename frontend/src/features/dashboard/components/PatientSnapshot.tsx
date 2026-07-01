@@ -43,6 +43,12 @@ export function PatientSnapshot({ patient: defaultPatient, dataSources, onWearab
     }
   }, []);
 
+export function PatientSnapshot({
+  dataSources,
+  isSyncingWearable = false,
+  onWearableSync,
+  patient,
+}: PatientSnapshotProps) {
   return (
     <Card className="bg-white/70">
       <CardHeader title="Patient Snapshot" eyebrow="Active memory" />
@@ -78,39 +84,55 @@ export function PatientSnapshot({ patient: defaultPatient, dataSources, onWearab
         </div>
 
         <div className="space-y-2">
-        {dataSources.map((source) => {
-            // Show sync button for any data source in "syncing" state (wearables, phone apps, etc.)
-            const isSyncable = source.status === "syncing";
+{dataSources.map((source) => {
+  const isSyncable = source.status === "syncing";
 
-            return (
-              <div
-                key={source.id}
-                className="rounded-[20px] bg-white/90 px-3.5 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium leading-5">{source.name}</p>
+  return (
+    <div
+      key={source.id}
+      className="rounded-[20px] bg-white/90 px-3.5 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-medium leading-5">{source.name}</p>
 
-                  {isSyncable ? (
-                    <button
-                      onClick={onWearableSync}
-                      disabled={isSyncingWearable}
-                      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wider transition-all ${isSyncingWearable
-                          ? "bg-blue-100 text-blue-700 opacity-70 cursor-not-allowed"
-                          : "bg-white border border-pulse-line hover:bg-pulse-green/20 cursor-pointer"
-                        }`}
-                    >
-                      {isSyncingWearable ? <><Loader2 className="h-3 w-3 animate-spin" /> syncing</> : "sync"}
-                    </button>
-                  ) : (
-                    <Badge tone={statusTone[source.status]}>{source.status}</Badge>
-                  )}
-                </div>
-                <p className="mt-0.5 line-clamp-1 text-xs leading-4 text-pulse-muted">
-                  {source.description}
-                </p>
-                <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-pulse-muted">
-                  Last sync: {isSyncable && isSyncingWearable ? "SYNCING..." : source.lastSyncedAt}
-                </p>
+        {isSyncable && onWearableSync ? (
+          <button
+            className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wider transition ${
+              isSyncingWearable
+                ? "cursor-not-allowed bg-pulse-surface text-pulse-muted"
+                : "border border-pulse-line bg-white hover:bg-pulse-green/20"
+            }`}
+            disabled={isSyncingWearable}
+            onClick={onWearableSync}
+            type="button"
+          >
+            {isSyncingWearable ? (
+              <>
+                <span className="h-2 w-2 animate-pulse rounded-full bg-pulse-muted" />
+                updating
+              </>
+            ) : (
+              "update"
+            )}
+          </button>
+        ) : (
+          <Badge tone={statusTone[source.status]}>
+            {statusLabel[source.status]}
+          </Badge>
+        )}
+      </div>
+
+      <p className="mt-0.5 line-clamp-1 text-xs leading-4 text-pulse-muted">
+        {source.description}
+      </p>
+
+      <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-pulse-muted">
+        Last update:{" "}
+        {isSyncable && isSyncingWearable ? "UPDATING..." : source.lastSyncedAt}
+      </p>
+    </div>
+  );
+})}
               </div>
             );
           })}
