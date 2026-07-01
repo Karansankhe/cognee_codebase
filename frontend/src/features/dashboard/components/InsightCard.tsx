@@ -10,9 +10,9 @@ export function InsightCard({ pattern }: InsightCardProps) {
   return (
     <Card className="bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(216,251,100,0.18))]">
       <CardHeader
-        title="Current Risk Pattern"
-        eyebrow="Explainable AI"
-        action={<Badge tone="green">{pattern.updatedAt}</Badge>}
+        title="Current Trigger Pattern"
+        eyebrow="Health pattern"
+        action={<Badge tone="green">{pattern?.updatedAt || "N/A"}</Badge>}
       />
       <CardBody className="space-y-2.5">
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -21,11 +21,11 @@ export function InsightCard({ pattern }: InsightCardProps) {
               Symptom risk
             </p>
             <h3 className="mt-0.5 text-3xl font-semibold tracking-normal text-pulse-ink">
-              {pattern.symptom}
+              {pattern?.symptom || "No pattern"}
             </h3>
           </div>
           <div className="flex flex-wrap gap-2">
-            {pattern.triggerCandidates.map((trigger) => (
+            {(pattern?.triggerCandidates || []).map((trigger) => (
               <Badge key={trigger} tone="blue">
                 {trigger}
               </Badge>

@@ -15,7 +15,7 @@ import { DashboardHeader } from "../../features/dashboard/components/DashboardHe
 import { EvidenceList } from "../../features/dashboard/components/EvidenceList";
 import { EvaluationHarness } from "../../features/dashboard/components/EvaluationHarness";
 import { InsightCard } from "../../features/dashboard/components/InsightCard";
-import { MemoryGraphPreview } from "../../features/dashboard/components/MemoryGraphPreview";
+import { LiveGraphPanel } from "../../features/dashboard/components/LiveGraphPanel";
 import { PatientSnapshot } from "../../features/dashboard/components/PatientSnapshot";
 import { QuickActions } from "../../features/dashboard/components/QuickActions";
 import { TreatmentEffectivenessPanel } from "../../features/dashboard/components/TreatmentEffectivenessPanel";
@@ -52,6 +52,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [isSyncingWearable, setIsSyncingWearable] = useState(false);
   const [symptomForm, setSymptomForm] = useState(initialSymptomForm);
   const [outcomeForm, setOutcomeForm] = useState(initialOutcomeForm);
+  const [isSyncingWearable, setIsSyncingWearable] = useState(false);
 
   useEffect(() => {
     void getDashboardData().then(setData);
@@ -187,6 +188,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       });
     } catch (error) {
       console.error("Wearable update failed", error);
+      alert("Failed to update connected watch data");
     } finally {
       setIsSyncingWearable(false);
     }
@@ -201,8 +203,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             <PatientSnapshot
               patient={data.patient}
               dataSources={data.dataSources}
-              isSyncingWearable={isSyncingWearable}
               onWearableSync={handleWearableSync}
+              isSyncingWearable={isSyncingWearable}
             />
             <WearableSummaryPanel summary={data.wearableSummary} />
             <TimelineFeed entries={data.timeline} />
@@ -210,11 +212,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
           <div className="grid min-h-0 content-start gap-4">
             <InsightCard pattern={data.activePattern} />
-            <MemoryGraphPreview
-              edges={data.graph.edges}
-              insights={data.graph.insights}
-              nodes={data.graph.nodes}
-            />
+            <LiveGraphPanel />
             <QuickActions
               onAddOutcome={() => setActiveModal("outcome")}
               onLogSymptom={() => setActiveModal("symptom")}

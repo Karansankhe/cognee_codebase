@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { Routes, Route } from "react-router-dom";
 import { DashboardPage } from "../pages/dashboard/DashboardPage";
 import { LogPage } from "../pages/log/LogPage";
+import { UploadPage } from "../pages/upload/UploadPage";
 
 export default function App() {
-  const [activePage, setActivePage] = useState("Dashboard");
-
-  if (activePage === "Log") {
-    return <LogPage onNavigate={setActivePage} />;
-  }
-
-  return <DashboardPage onNavigate={setActivePage} />;
+  return (
+    <Routes>
+      <Route path="/" element={<UploadPage />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/log" element={<LogPage />} />
+    </Routes>
+  );
 }
