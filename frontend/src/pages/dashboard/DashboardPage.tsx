@@ -18,10 +18,15 @@ import { QuickActions } from "../../features/dashboard/components/QuickActions";
 import { TreatmentEffectivenessPanel } from "../../features/dashboard/components/TreatmentEffectivenessPanel";
 import { TimelineFeed } from "../../features/dashboard/components/TimelineFeed";
 import { TrendsPanel } from "../../features/dashboard/components/TrendsPanel";
+import { WearableSummaryPanel } from "../../features/dashboard/components/WearableSummaryPanel";
 import type {
   DashboardData,
   EvidenceCitation,
 } from "../../features/dashboard/types/dashboard.types";
+
+interface DashboardPageProps {
+  onNavigate?: (page: string) => void;
+}
 
 const initialSymptomForm = {
   notes: "",
@@ -35,7 +40,7 @@ const initialOutcomeForm = {
   treatment: "",
 };
 
-export function DashboardPage() {
+export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [activeModal, setActiveModal] = useState<"outcome" | "symptom" | null>(
     null,
@@ -50,7 +55,7 @@ export function DashboardPage() {
 
   if (!data) {
     return (
-      <AppShell>
+      <AppShell activePage="Dashboard" onNavigate={onNavigate}>
         <div className="grid min-h-screen place-items-center px-5">
           <div className="rounded-lg border border-pulse-line bg-white px-5 py-4 shadow-pulse">
             <p className="text-sm font-bold text-pulse-muted">
@@ -142,7 +147,7 @@ export function DashboardPage() {
   };
 
   return (
-    <AppShell>
+    <AppShell activePage="Dashboard" onNavigate={onNavigate}>
       <DashboardHeader language={language} onLanguageChange={setLanguage} />
       <main className="px-4 pb-5 pt-3 sm:px-6">
         <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)_380px]">
@@ -151,12 +156,8 @@ export function DashboardPage() {
               patient={data.patient}
               dataSources={data.dataSources}
             />
+            <WearableSummaryPanel summary={data.wearableSummary} />
             <TimelineFeed entries={data.timeline} />
-            <DataControlsPanel
-              entries={data.citations}
-              onDeleteEntry={handleDeleteEntry}
-              onRedactEntry={handleRedactEntry}
-            />
           </div>
 
           <div className="grid min-h-0 content-start gap-4">
@@ -171,9 +172,14 @@ export function DashboardPage() {
               onLogSymptom={() => setActiveModal("symptom")}
             />
             <TrendsPanel trends={data.trends} />
+            <DataControlsPanel
+              entries={data.citations}
+              onDeleteEntry={handleDeleteEntry}
+              onRedactEntry={handleRedactEntry}
+            />
           </div>
 
-          <div className="grid min-h-0 gap-4">
+          <div className="grid min-h-0 content-start gap-4">
             <ConfidencePanel pattern={data.activePattern} />
             <TreatmentEffectivenessPanel pattern={data.activePattern} />
             <EvaluationHarness evaluation={data.systemEvaluation} />
