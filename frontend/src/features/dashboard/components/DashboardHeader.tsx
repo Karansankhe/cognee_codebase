@@ -38,8 +38,8 @@ export function DashboardHeader({
     <header className="flex flex-col gap-3 px-4 pb-1 pt-4 sm:px-6 lg:flex-row lg:items-start lg:justify-between">
       <div>
         <div className="mb-1.5 flex flex-wrap gap-2">
-          <Badge tone="green">Patient dashboard</Badge>
-          <Badge tone="neutral">Personal memory</Badge>
+          <Badge tone="green">Wearable intelligence</Badge>
+          <Badge tone="neutral">Consent driven</Badge>
         </div>
         <h1 className="text-3xl font-semibold tracking-normal">
           Pulse Health Dashboard
