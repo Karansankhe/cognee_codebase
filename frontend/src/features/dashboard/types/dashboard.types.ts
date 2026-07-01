@@ -135,9 +135,23 @@ export interface TrendSummary {
   temporalTrends: TemporalTrend[];
 }
 
+export interface WearableMetric {
+  id: string;
+  label: string;
+  value: string;
+  status: string;
+}
+
+export interface WearableSummary {
+  syncCadence: string;
+  consentScope: string[];
+  metrics: WearableMetric[];
+}
+
 export interface DashboardData {
   patient: PatientProfile;
   dataSources: DataSource[];
+  wearableSummary: WearableSummary;
   timeline: TimelineEntry[];
   activePattern: TriggerPattern;
   citations: EvidenceCitation[];
