@@ -114,6 +114,16 @@ async def generate_insights(
         logger.error(f"[INSIGHTS] Error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/wearable/sync")
+async def sync_wearable():
+    logger.info("[WEARABLE] Sync requested.")
+    try:
+        pattern = await insights_service.generate_wearable_pattern()
+        return pattern
+    except Exception as e:
+        logger.error(f"[WEARABLE] Error generating wearable pattern: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/insights/pdf")
 async def download_insights_pdf(req: InsightsPDFRequest):
     try:

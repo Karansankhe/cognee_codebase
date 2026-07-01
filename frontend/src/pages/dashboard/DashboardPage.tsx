@@ -43,6 +43,7 @@ export function DashboardPage() {
   const [language, setLanguage] = useState("English");
   const [symptomForm, setSymptomForm] = useState(initialSymptomForm);
   const [outcomeForm, setOutcomeForm] = useState(initialOutcomeForm);
+  const [isSyncingWearable, setIsSyncingWearable] = useState(false);
 
   useEffect(() => {
     void getDashboardData().then(setData);
@@ -141,6 +142,37 @@ export function DashboardPage() {
     });
   };
 
+  const handleWearableSync = async () => {
+    setIsSyncingWearable(true);
+    try {
+      const response = await fetch("/api/v1/wearable/sync", {
+        method: "POST"
+      });
+      if (!response.ok) throw new Error("Sync failed");
+      const pattern = await response.json();
+      
+      setData((currentData) => {
+        if (!currentData) return currentData;
+        return {
+          ...currentData,
+          activePattern: {
+            ...currentData.activePattern,
+            symptom: pattern.symptom,
+            summary: pattern.summary,
+            triggerCandidates: pattern.triggerCandidates,
+            treatmentMemory: pattern.treatmentMemory,
+            updatedAt: "Just now"
+          }
+        };
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Failed to sync wearable data");
+    } finally {
+      setIsSyncingWearable(false);
+    }
+  };
+
   return (
     <AppShell>
       <DashboardHeader language={language} onLanguageChange={setLanguage} />
@@ -150,6 +182,8 @@ export function DashboardPage() {
             <PatientSnapshot
               patient={data.patient}
               dataSources={data.dataSources}
+              onWearableSync={handleWearableSync}
+              isSyncingWearable={isSyncingWearable}
             />
             <TimelineFeed entries={data.timeline} />
             <DataControlsPanel

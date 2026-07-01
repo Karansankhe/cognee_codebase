@@ -105,4 +105,41 @@ class InsightsService:
                 ]
             }
 
+    async def generate_wearable_pattern(self):
+        sys_msg = SystemMessage(
+            content=(
+                "You are an AI analyzing wearable health data (sleep, HRV, resting heart rate). "
+                "Output MUST be in valid JSON format ONLY. Do not include markdown formatting or extra text. "
+                "Generate a mock trigger pattern based on random wearable metrics. "
+                "The JSON must have this structure:\n"
+                "{\n"
+                '  "symptom": "Headache",\n'
+                '  "summary": "Headache episodes usually follow poor sleep plus dehydration before high-stress days.",\n'
+                '  "triggerCandidates": ["Poor sleep", "Low HRV", "High resting heart rate"],\n'
+                '  "treatmentMemory": "Hydration and earlier sleep reduced similar episodes in 3 of 4 attempts."\n'
+                "}\n"
+            )
+        )
+        hum_msg = HumanMessage(content="Generate a random wearable health pattern insight.")
+
+        logger.info("[INSIGHTS] Calling Groq LLM for wearable pattern generation.")
+        try:
+            response = self.llm.invoke([sys_msg, hum_msg])
+            content = response.content.strip()
+            if content.startswith("```json"):
+                content = content[7:-3]
+            elif content.startswith("```"):
+                content = content[3:-3]
+            
+            parsed = json.loads(content)
+            return parsed
+        except Exception as e:
+            logger.error(f"[INSIGHTS] LLM parsing failed for wearable pattern: {e}")
+            return {
+                "symptom": "Headache",
+                "summary": "Headache episodes usually follow poor sleep (fallback data).",
+                "triggerCandidates": ["Poor sleep", "Low HRV"],
+                "treatmentMemory": "Hydration and earlier sleep reduced similar episodes."
+            }
+
 insights_service = InsightsService()

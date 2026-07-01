@@ -27,13 +27,13 @@ export function TrendsPanel({ trends: defaultTrends }: TrendsPanelProps) {
     }
   }, []);
 
-  const displayData = insights || {
-    description: defaultTrends.insight,
-    trends: defaultTrends.temporalTrends.map((t) => ({
+  const displayData = {
+    description: insights?.description || defaultTrends?.insight || "No description available.",
+    trends: insights?.trends || defaultTrends?.temporalTrends?.map((t) => ({
       label: t.label,
       value: t.intensity,
       text: t.value,
-    })),
+    })) || [],
   };
 
   const handleDownloadPDF = async () => {
@@ -65,17 +65,20 @@ export function TrendsPanel({ trends: defaultTrends }: TrendsPanelProps) {
 
   return (
     <Card className="bg-[linear-gradient(135deg,rgba(255,255,255,0.84),rgba(216,251,100,0.14))]">
-      <div className="flex items-start justify-between pr-5">
-        <CardHeader title="Temporal Trends" eyebrow="Seasonal view" />
-        <button
-          onClick={handleDownloadPDF}
-          disabled={isDownloading}
-          className="mt-4 flex items-center gap-2 rounded-full border border-pulse-line bg-white/80 px-3 py-1.5 text-sm font-semibold text-pulse-ink shadow-sm transition-all hover:bg-pulse-green/20 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <DownloadCloud className="h-4 w-4" />}
-          Download PDF
-        </button>
-      </div>
+      <CardHeader 
+        title="Temporal Trends" 
+        eyebrow="Seasonal view" 
+        action={
+          <button
+            onClick={handleDownloadPDF}
+            disabled={isDownloading}
+            className="flex items-center gap-2 rounded-full border border-pulse-line bg-white/80 px-3 py-1.5 text-xs font-semibold text-pulse-ink shadow-sm transition-all hover:bg-pulse-green/20 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isDownloading ? <Loader2 className="h-3 w-3 animate-spin" /> : <DownloadCloud className="h-3 w-3" />}
+            PDF
+          </button>
+        }
+      />
       <CardBody className="space-y-3">
         <p className="text-sm leading-5 text-pulse-muted">{displayData.description}</p>
         <div className="space-y-2">

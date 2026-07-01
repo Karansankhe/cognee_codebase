@@ -11,6 +11,12 @@ export function UploadPage() {
   const [waterIntake, setWaterIntake] = useState("");
   const [sleepAmount, setSleepAmount] = useState("");
   const [otherHabits, setOtherHabits] = useState("");
+  
+  const [patientName, setPatientName] = useState("");
+  const [patientAge, setPatientAge] = useState("");
+  const [patientGender, setPatientGender] = useState("");
+  const [patientMedications, setPatientMedications] = useState("");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
@@ -91,6 +97,14 @@ export function UploadPage() {
         }
       }
 
+      // 3. Store patient info
+      localStorage.setItem("pulse_patient_info", JSON.stringify({
+        name: patientName,
+        age: patientAge,
+        gender: patientGender,
+        medications: patientMedications,
+      }));
+
       setTimeout(() => navigate("/dashboard"), 500);
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");
@@ -139,6 +153,44 @@ export function UploadPage() {
             <p className="mb-5 text-sm leading-relaxed text-pulse-muted">
               Drop a PDF to build your personal knowledge graph. Pulse will extract entities, relationships, and surface insights automatically.
             </p>
+
+            {/* Patient Information Form */}
+            <div className="mb-5 rounded-[16px] border border-pulse-line bg-white/40 p-4">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.1em] text-pulse-muted">Patient Details</p>
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={patientName}
+                  onChange={(e) => setPatientName(e.target.value)}
+                  className="w-full rounded-lg border border-pulse-line bg-white/50 px-3 py-2 text-sm text-pulse-ink placeholder:text-pulse-muted focus:border-pulse-green focus:outline-none"
+                />
+                <input
+                  type="number"
+                  placeholder="Age"
+                  value={patientAge}
+                  onChange={(e) => setPatientAge(e.target.value)}
+                  className="w-full rounded-lg border border-pulse-line bg-white/50 px-3 py-2 text-sm text-pulse-ink placeholder:text-pulse-muted focus:border-pulse-green focus:outline-none"
+                />
+                <select
+                  value={patientGender}
+                  onChange={(e) => setPatientGender(e.target.value)}
+                  className="w-full rounded-lg border border-pulse-line bg-white/50 px-3 py-2 text-sm text-pulse-ink placeholder:text-pulse-muted focus:border-pulse-green focus:outline-none"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder="Medications (comma separated)"
+                  value={patientMedications}
+                  onChange={(e) => setPatientMedications(e.target.value)}
+                  className="w-full rounded-lg border border-pulse-line bg-white/50 px-3 py-2 text-sm text-pulse-ink placeholder:text-pulse-muted focus:border-pulse-green focus:outline-none"
+                />
+              </div>
+            </div>
 
             {/* Habits Form */}
             <div className="mb-5 space-y-3">
