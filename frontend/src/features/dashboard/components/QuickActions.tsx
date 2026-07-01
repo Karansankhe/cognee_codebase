@@ -15,14 +15,14 @@ const actions = [
   },
   {
     id: "summary",
-    label: "Generate visit summary",
-    helper: "Create a visit brief with past entries",
+    label: "Generate daily summary",
+    helper: "Summarize health signals, symptoms, and treatments",
     primary: false,
   },
   {
     id: "share",
-    label: "Share caregiver view",
-    helper: "Open a redacted, read-only trend link",
+    label: "Review consent",
+    helper: "Check what health data Pulse can use",
     primary: false,
   },
 ];
@@ -46,7 +46,7 @@ export function QuickActions({ onAddOutcome, onLogSymptom }: QuickActionsProps) 
 
   return (
     <Card className="bg-[linear-gradient(135deg,rgba(255,255,255,0.78),rgba(216,251,100,0.16))]">
-      <CardHeader title="Quick Actions" eyebrow="Next patient task" />
+      <CardHeader title="Quick Actions" eyebrow="Logging workflow" />
       <CardBody>
         <div className="grid gap-2 md:grid-cols-4">
           {actions.map((action) => (
