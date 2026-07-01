@@ -8,7 +8,7 @@ interface TrendsPanelProps {
 export function TrendsPanel({ trends }: TrendsPanelProps) {
   return (
     <Card className="bg-[linear-gradient(135deg,rgba(255,255,255,0.84),rgba(216,251,100,0.14))]">
-      <CardHeader title="Temporal Trends" eyebrow="Seasonal view" />
+      <CardHeader title="Temporal Trends" eyebrow="Sensor correlation" />
       <CardBody className="space-y-3">
         <p className="text-sm leading-5 text-pulse-muted">{trends.insight}</p>
         <div className="space-y-2">
