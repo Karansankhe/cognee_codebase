@@ -18,7 +18,7 @@ const entryTone: Record<TimelineEntryType, "green" | "blue" | "amber" | "rose"> 
 export function TimelineFeed({ entries }: TimelineFeedProps) {
   return (
     <Card className="bg-white/60">
-      <CardHeader title="Live Timeline" eyebrow="Incoming evidence" />
+      <CardHeader title="Live Timeline" eyebrow="Validated signals" />
       <CardBody>
         <div className="space-y-2">
           {entries.slice(0, 3).map((entry) => (
