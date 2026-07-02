@@ -5,6 +5,8 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
 from app.core.config import settings
 from app.services.graph_service import graph_service
+import tempfile
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -28,37 +30,32 @@ class InsightsService:
             logger.error(f"[INSIGHTS] DuckDuckGo search failed: {e}")
             search_context = "Could not fetch current climate trends."
 
-        # 2. Add habit data to neo4j
-        # We manually add these to Neo4j to be consistent with the user's request
+        # Note: habit data is no longer persisted to a graph DB since the graph
+        # service now delegates to Cognee Cloud. Habits are used for LLM context only.
+        logger.info(f"[INSIGHTS] Habit context — location={location}, water={water_intake}, sleep={sleep_amount}.")
+
+        # 2. Query Cognee for patient history (Graph RAG)
+        logger.info("[INSIGHTS] Querying Graph RAG for patient history...")
         try:
-            cypher = """
-            MERGE (loc:Location {id: $location})
-            MERGE (h:DailyHabit {id: "Hydration: " + $water_intake})
-            MERGE (s:DailyHabit {id: "Sleep: " + $sleep_amount})
-            MERGE (o:DailyHabit {id: "Other: " + $other_habits})
-            MERGE (loc)-[:AFFECTS]->(h)
-            MERGE (loc)-[:AFFECTS]->(s)
-            MERGE (loc)-[:AFFECTS]->(o)
-            """
-            graph_service.graph.query(cypher, params={
-                "location": location,
-                "water_intake": water_intake,
-                "sleep_amount": sleep_amount,
-                "other_habits": other_habits
-            })
-            logger.info("[INSIGHTS] Added habits to Neo4j.")
+            graph_query = "What are the patient's existing symptoms, triggers, medications, and lifestyle factors?"
+            graph_response = await graph_service.query(graph_query)
+            graph_context = graph_response.get("graph_answer", "No history available.")
         except Exception as e:
-            logger.error(f"[INSIGHTS] Failed to add habits to Neo4j: {e}")
+            logger.error(f"[INSIGHTS] Graph RAG query failed: {e}")
+            graph_context = "Could not fetch patient history from the knowledge graph."
+
 
 
         # 3. Use Groq to synthesise insights
         sys_msg = SystemMessage(
             content=(
-                "You are a helpful AI analyzing patient daily habits against current climate/seasonal events. "
+                "You are an expert medical AI analyzing patient daily habits against current climate/seasonal events. "
                 "Output MUST be in valid JSON format ONLY. Do not include markdown formatting or extra text. "
                 "The JSON must have this structure:\n"
                 "{\n"
-                '  "description": "A short 1-sentence insight (e.g., Headaches are 2.3x more frequent during monsoon months...).",\n'
+                '  "description": "A short 1-sentence insight.",\n'
+                '  "detailed_report": "An extremely elaborate, exhaustive report (at least 600-800 words) breaking down the correlation between the patient\'s medical history, current habits, triggers, and the environmental climate data. Discuss physiological mechanisms, potential future risks, and comprehensive health impact.",\n'
+                '  "weekly_plan": "A highly detailed, day-by-day (Monday to Sunday) actionable weekly plan. Each day should have specific routines for diet, hydration, sleep hygiene, and symptom management tailored to their history and the climate.",\n'
                 '  "trends": [\n'
                 '    {"label": "Mon", "value": 80, "text": "High"},\n'
                 '    {"label": "Thu", "value": 60, "text": "Medium"},\n'
@@ -71,13 +68,14 @@ class InsightsService:
         )
         hum_msg = HumanMessage(
             content=(
-                f"Patient Habits:\n"
+                f"Patient Habits (Self-Reported):\n"
                 f"- Location: {location}\n"
                 f"- Water Intake: {water_intake}\n"
                 f"- Sleep: {sleep_amount}\n"
                 f"- Other Habits: {other_habits}\n\n"
+                f"Patient Medical History (from Knowledge Graph):\n{graph_context}\n\n"
                 f"Web Search Climate Trends for location:\n{search_context}\n\n"
-                "Generate the JSON insights."
+                "Generate the JSON insights, correlating their existing symptoms and triggers with the climate data."
             )
         )
 
@@ -92,11 +90,34 @@ class InsightsService:
                 content = content[3:-3]
             
             parsed = json.loads(content)
+            
+            # 4. Ingest the generated insights back into Cognee so it "remembers" them
+            logger.info("[INSIGHTS] Saving generated insights to knowledge graph...")
+            try:
+                insights_text = (
+                    "AI Generated Weekly Insights Report\n"
+                    "===================================\n\n"
+                    f"Summary: {parsed.get('description', '')}\n\n"
+                    f"Detailed Analysis:\n{parsed.get('detailed_report', '')}\n\n"
+                    f"Weekly Plan:\n{parsed.get('weekly_plan', '')}\n"
+                )
+                
+                with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt", encoding="utf-8") as tmp:
+                    tmp.write(insights_text)
+                    tmp_path = tmp.name
+                
+                await graph_service.process_pdf(tmp_path, "weekly_insights_report.txt")
+                os.unlink(tmp_path)
+            except Exception as graph_e:
+                logger.error(f"[INSIGHTS] Failed to ingest insights to graph: {graph_e}")
+                
             return parsed
         except Exception as e:
             logger.error(f"[INSIGHTS] LLM parsing failed: {e}")
             return {
                 "description": "Unable to generate insights at this time.",
+                "detailed_report": "Our AI service is currently unable to synthesize your detailed report. Please ensure your habits are correctly logged and try again later.",
+                "weekly_plan": "1. Stay hydrated.\n2. Ensure adequate sleep.\n3. Log symptoms daily.",
                 "trends": [
                     {"label": "Mon", "value": 80, "text": "High"},
                     {"label": "Thu", "value": 60, "text": "Medium"},

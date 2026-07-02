@@ -9,6 +9,8 @@ interface TrendsPanelProps {
 
 interface InsightsData {
   description: string;
+  detailed_report?: string;
+  weekly_plan?: string;
   trends: { label: string; value: number; text: string }[];
 }
 
@@ -29,6 +31,8 @@ export function TrendsPanel({ trends: defaultTrends }: TrendsPanelProps) {
 
   const displayData = {
     description: insights?.description || defaultTrends?.insight || "No description available.",
+    detailed_report: insights?.detailed_report || "",
+    weekly_plan: insights?.weekly_plan || "",
     trends: insights?.trends || defaultTrends?.temporalTrends?.map((t) => ({
       label: t.label,
       value: t.intensity,

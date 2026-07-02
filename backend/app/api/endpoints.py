@@ -18,7 +18,20 @@ class QueryRequest(BaseModel):
 
 class InsightsPDFRequest(BaseModel):
     description: str
+    detailed_report: str = ""
+    weekly_plan: str = ""
     trends: list
+
+class SymptomLogRequest(BaseModel):
+    symptom_name: str
+    logged_at: str
+    severity: str = ""
+    notes: str = ""
+
+class OutcomeLogRequest(BaseModel):
+    treatment: str
+    result: str
+    follow_up_notes: str = ""
 
 @router.get("/health")
 def health_check():
@@ -26,18 +39,43 @@ def health_check():
     return {"status": "healthy"}
 
 
+# Supported file types (Cognee Cloud accepts all of these)
+SUPPORTED_EXTENSIONS = {"pdf", "txt", "csv", "json", "md", "docx"}
+
+@router.get("/sample-report")
+async def download_sample_report():
+    """Serve the built-in sample patient report for testing."""
+    import pathlib
+    report_path = pathlib.Path(__file__).parent.parent.parent / "sample_patient_report.txt"
+    if not report_path.exists():
+        raise HTTPException(status_code=404, detail="Sample report not found.")
+    return FileResponse(
+        path=str(report_path),
+        filename="sample_patient_report.txt",
+        media_type="text/plain",
+    )
+
+
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
     logger.info("=" * 60)
     logger.info(f"[UPLOAD] Incoming file: '{file.filename}' | content-type: {file.content_type}")
 
-    if not file.filename.endswith(".pdf"):
-        logger.warning(f"[UPLOAD] Rejected '{file.filename}': not a PDF.")
-        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+    ext = (file.filename or "").rsplit(".", 1)[-1].lower()
+    if ext not in SUPPORTED_EXTENSIONS:
+        logger.warning(f"[UPLOAD] Rejected '{file.filename}': unsupported type '{ext}'.")
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Unsupported file type '.{ext}'. "
+                f"Supported types: {', '.join(sorted(SUPPORTED_EXTENSIONS))}"
+            ),
+        )
 
+    tmp_path = None
     try:
-        # Write to a temp file so PyPDFLoader can read it from disk
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        suffix = f".{ext}"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
             shutil.copyfileobj(file.file, tmp)
             tmp_path = tmp.name
             tmp_size = os.path.getsize(tmp_path)
@@ -57,12 +95,12 @@ async def upload_file(file: UploadFile = File(...)):
         logger.error(f"[UPLOAD] ✗ Failed processing '{file.filename}': {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
     finally:
-        # Clean up temp file
-        try:
-            os.unlink(tmp_path)
-            logger.debug(f"[UPLOAD] Temp file removed: {tmp_path}")
-        except Exception:
-            pass
+        if tmp_path:
+            try:
+                os.unlink(tmp_path)
+                logger.debug(f"[UPLOAD] Temp file removed: {tmp_path}")
+            except Exception:
+                pass
 
 
 @router.post("/query")
@@ -99,6 +137,46 @@ async def generate_summary():
         logger.error(f"[SUMMARY] ✗ Error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@router.post("/log-symptom")
+async def log_symptom_endpoint(req: SymptomLogRequest):
+    logger.info(f"[LOG_SYMPTOM] Request received: {req.symptom_name}")
+    try:
+        result = await graph_service.log_symptom(
+            symptom_name=req.symptom_name,
+            logged_at=req.logged_at,
+            severity=req.severity,
+            notes=req.notes
+        )
+        return result
+    except Exception as e:
+        logger.error(f"[LOG_SYMPTOM] Error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/log-outcome")
+async def log_outcome_endpoint(req: OutcomeLogRequest):
+    logger.info(f"[LOG_OUTCOME] Request received: {req.treatment}")
+    try:
+        result = await graph_service.log_outcome(
+            treatment=req.treatment,
+            result=req.result,
+            follow_up_notes=req.follow_up_notes
+        )
+        return result
+    except Exception as e:
+        logger.error(f"[LOG_OUTCOME] Error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/cognify")
+async def trigger_cognify():
+    logger.info("[COGNIFY] Cognify request received.")
+    try:
+        result = await graph_service.cognify()
+        return result
+    except Exception as e:
+        logger.error(f"[COGNIFY] Error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/insights")
 async def generate_insights(
     location: str = Form(...),
@@ -128,20 +206,67 @@ async def sync_wearable():
 async def download_insights_pdf(req: InsightsPDFRequest):
     try:
         from fpdf import FPDF
-        pdf = FPDF()
+        
+        class PDF(FPDF):
+            def header(self):
+                self.set_font('Arial', 'B', 20)
+                self.set_text_color(33, 37, 41)
+                self.cell(0, 15, 'Pulse Insights Report', 0, 1, 'C')
+                self.set_draw_color(216, 251, 100) # Pulse green/yellow
+                self.set_line_width(1)
+                self.line(10, 25, 200, 25)
+                self.ln(10)
+                
+            def chapter_title(self, title):
+                self.set_font('Arial', 'B', 14)
+                self.set_fill_color(240, 248, 255)
+                self.cell(0, 10, title, 0, 1, 'L', 1)
+                self.ln(4)
+                
+            def chapter_body(self, body):
+                self.set_font('Arial', '', 11)
+                self.set_text_color(50, 50, 50)
+                # handle utf-8 by encoding and decoding
+                body = body.encode('latin-1', 'replace').decode('latin-1')
+                self.multi_cell(0, 7, body)
+                self.ln(6)
+
+        pdf = PDF()
         pdf.add_page()
-        pdf.set_font("Arial", size=16)
-        pdf.cell(200, 10, txt="Temporal Trends & Insights", ln=1, align="C")
         
-        pdf.set_font("Arial", size=12)
-        pdf.ln(10)
-        pdf.multi_cell(0, 10, txt=f"Insight: {req.description}")
+        # Summary
+        pdf.chapter_title("Key Insight")
+        pdf.chapter_body(req.description)
         
-        pdf.ln(10)
-        pdf.cell(200, 10, txt="Trends Breakdown:", ln=1)
-        for t in req.trends:
-            pdf.cell(200, 10, txt=f"- {t.get('label', '')}: {t.get('text', '')} (Score: {t.get('value', 0)})", ln=1)
+        # Detailed Report
+        if req.detailed_report:
+            pdf.chapter_title("Detailed Analysis")
+            pdf.chapter_body(req.detailed_report)
             
+        # Weekly Plan
+        if req.weekly_plan:
+            pdf.chapter_title("Actionable Weekly Plan")
+            pdf.chapter_body(req.weekly_plan)
+        
+        # Trends
+        pdf.chapter_title("Temporal Trends Breakdown")
+        pdf.set_font('Arial', '', 11)
+        for t in req.trends:
+            label = str(t.get('label', ''))
+            text = str(t.get('text', ''))
+            val = t.get('value', 0)
+            
+            # Simple bar visualization using background colors
+            pdf.set_fill_color(216, 251, 100)
+            pdf.cell(50, 8, label, 0, 0)
+            # draw bar
+            bar_width = val
+            pdf.cell(bar_width, 8, "", 0, 0, 'L', 1)
+            pdf.cell(100 - bar_width, 8, "", 0, 0)
+            pdf.cell(40, 8, f"{text} ({val})", 0, 1)
+        
+        pdf.ln(10)
+        
         import tempfile
         import os
         tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
@@ -162,56 +287,15 @@ async def download_insights_pdf(req: InsightsPDFRequest):
 
 @router.get("/graph")
 async def get_graph():
-    """Return all nodes and relationships from Neo4j for graph visualization."""
-    logger.info("[GRAPH] Fetching full graph from Neo4j...")
+    """Return nodes and relationships from Cognee Cloud for graph visualization."""
+    logger.info("[GRAPH] Fetching graph data from Cognee Cloud...")
     try:
-        nodes_result = graph_service.graph.query(
-            """
-            MATCH (n)
-            WHERE NOT n:_Bloom_Perspective_ AND NOT n:Document
-            RETURN
-                id(n) AS id,
-                labels(n) AS labels,
-                n.id AS name,
-                n.text AS text
-            LIMIT 200
-            """
+        graph_data = await graph_service.get_graph_data()
+        logger.info(
+            f"[GRAPH] ✓ {len(graph_data['nodes'])} node(s), "
+            f"{len(graph_data['links'])} relationship(s)."
         )
-        rels_result = graph_service.graph.query(
-            """
-            MATCH (a)-[r]->(b)
-            WHERE NOT a:_Bloom_Perspective_ AND NOT b:_Bloom_Perspective_
-              AND NOT a:Document AND NOT b:Document
-            RETURN
-                id(a) AS source,
-                id(b) AS target,
-                type(r) AS rel_type,
-                id(r) AS id
-            LIMIT 500
-            """
-        )
-
-        nodes = [
-            {
-                "id": str(row["id"]),
-                "label": (row["labels"][0] if row["labels"] else "Node"),
-                "name": row["name"] or row["text"] or f"Node {row['id']}",
-            }
-            for row in nodes_result
-        ]
-        links = [
-            {
-                "id": str(row["id"]),
-                "source": str(row["source"]),
-                "target": str(row["target"]),
-                "type": row["rel_type"],
-            }
-            for row in rels_result
-        ]
-
-        logger.info(f"[GRAPH] ✓ {len(nodes)} node(s), {len(links)} relationship(s).")
-        return {"nodes": nodes, "links": links}
-
+        return graph_data
     except Exception as e:
         logger.error(f"[GRAPH] ✗ Error fetching graph: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,0 +1,399 @@
+PATIENT MEDICAL RECORD
+======================
+CONFIDENTIAL — For Clinical Use Only
+Generated: 2026-06-01
+Facility: Northgate Neurology & Internal Medicine Clinic
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PATIENT DEMOGRAPHICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Name       : Jane A. Doe
+DOB        : 1992-03-14  (Age: 34)
+Sex        : Female
+MRN        : 20240314-JAD
+Occupation : Senior Project Manager (high-stress environment)
+Insurance  : BlueCross PPO
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHIEF COMPLAINT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Patient presents with chronic recurrent migraine headaches occurring 12–15 times
+per month, accompanied by nausea, vomiting, photophobia, and neck stiffness.
+She reports significant fatigue, visual aura episodes before headache onset,
+and increasing disability affecting her work and daily life.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SYMPTOMS (Detailed)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Symptom 1: Migraine Headache
+  - Severity    : Severe (VAS 8–9/10)
+  - Frequency   : 12–15 episodes per month
+  - Duration    : 4 to 72 hours per episode
+  - Description : Unilateral throbbing pain, typically left temporal region.
+                  Worsens with movement, bright light, and loud sound.
+  - Associated  : Nausea, vomiting, photophobia, phonophobia, neck stiffness
+
+Symptom 2: Visual Aura
+  - Severity    : Moderate
+  - Frequency   : Precedes 60% of migraine headache episodes
+  - Duration    : 20–30 minutes before headache onset
+  - Description : Zigzag lines, blind spots (scotoma), flickering lights in
+                  peripheral vision. Aura consistently precedes headache pain.
+
+Symptom 3: Nausea
+  - Severity    : Moderate to Severe
+  - Frequency   : Present in 90% of migraine headache episodes
+  - Duration    : Concurrent with headache duration
+  - Description : Persistent nausea with occasional vomiting during peak headache.
+                  Nausea correlates with and accompanies migraine headache.
+
+Symptom 4: Chronic Fatigue
+  - Severity    : Moderate
+  - Frequency   : Daily (between migraine episodes)
+  - Duration    : Persistent, ongoing
+  - Description : Patient reports post-migraine exhaustion lasting 24–48 hours
+                  (postdrome phase). Poor sleep and dehydration worsen fatigue.
+
+Symptom 5: Neck Stiffness
+  - Severity    : Mild to Moderate
+  - Frequency   : Present in 70% of migraine headache episodes
+  - Duration    : Concurrent with headache, persists 12–24 hours after
+  - Description : Stiffness and tenderness in cervical muscles, particularly
+                  trapezius and SCM. Correlates with migraine headache onset.
+
+Symptom 6: Photophobia (Light Sensitivity)
+  - Severity    : Severe
+  - Frequency   : Present in 100% of migraine headache episodes
+  - Duration    : Concurrent with headache
+  - Description : Extreme sensitivity to light requiring darkened room during
+                  migraine episodes. Bright light exposure triggers headache.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRIGGERS (Identified Factors That Cause Symptoms)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Trigger 1: Psychological Stress
+  - Category    : Psychological
+  - Details     : High workload as project manager. Stress directly triggers
+                  migraine headache onset within 24–48 hours. Stress also
+                  worsens chronic fatigue and neck stiffness. Stress triggers
+                  migraine headache in 80% of confirmed episodes.
+
+Trigger 2: Poor Sleep / Sleep Deprivation
+  - Category    : Physical / Behavioral
+  - Details     : Patient sleeps 5–6 hours per night (recommended: 7–9 hours).
+                  Poor sleep consistently triggers migraine headache the
+                  following morning. Poor sleep also triggers chronic fatigue
+                  and worsens neck stiffness.
+
+Trigger 3: Bright Light Exposure
+  - Category    : Environmental
+  - Details     : Fluorescent office lights and bright screens trigger migraine
+                  headache and photophobia within 30–60 minutes of exposure.
+                  Bright light exposure is the primary environmental trigger.
+
+Trigger 4: Caffeine Withdrawal
+  - Category    : Dietary
+  - Details     : Patient consumes 4 cups of coffee daily. Missing the morning
+                  coffee triggers migraine headache within 2–4 hours. Caffeine
+                  withdrawal is a reliable dietary trigger for migraine headache.
+
+Trigger 5: Skipping Meals / Hypoglycemia
+  - Category    : Dietary
+  - Details     : Irregular meal timing (often skips breakfast due to work).
+                  Skipping meals triggers migraine headache in 60% of cases.
+                  Low blood sugar directly triggers both headache and fatigue.
+
+Trigger 6: Hormonal Changes (Menstrual)
+  - Category    : Hormonal
+  - Details     : Migraine headache frequency doubles during perimenstrual phase
+                  (2 days before to 2 days after menstruation). Hormonal changes
+                  are a significant trigger for migraine headache.
+
+Trigger 7: Weather / Barometric Pressure Changes
+  - Category    : Environmental
+  - Details     : Rapid barometric pressure drops (storms, altitude changes)
+                  trigger migraine headache. Patient reports reliable correlation
+                  between weather fronts and headache onset.
+
+Trigger 8: Strong Odors / Perfume
+  - Category    : Environmental / Sensory
+  - Details     : Strong perfumes, chemical smells, and cigarette smoke trigger
+                  migraine headache and worsen photophobia and nausea.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MEDICATIONS (Current and Historical)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Medication 1: Sumatriptan (Imitrex)
+  - Type        : Prescription — Triptan (acute abortive)
+  - Dosage      : 50 mg orally at migraine headache onset; may repeat 100 mg
+                  after 2 hours if needed. Maximum 200 mg per 24 hours.
+  - Indication  : Acute treatment of migraine headache
+  - Instructions: Take at first sign of migraine headache attack, not during aura.
+
+Medication 2: Propranolol (Inderal)
+  - Type        : Prescription — Beta-blocker (preventive)
+  - Dosage      : 40 mg orally twice daily (morning and evening)
+  - Indication  : Prophylactic prevention of migraine headache episodes
+  - Instructions: Take daily; do not stop abruptly. Review efficacy at 3 months.
+
+Medication 3: Amitriptyline
+  - Type        : Prescription — Tricyclic antidepressant (preventive)
+  - Dosage      : 25 mg orally at bedtime
+  - Indication  : Preventive treatment for chronic migraine headache and
+                  improvement of sleep quality
+  - Instructions: Increase to 50 mg after 2 weeks if tolerated.
+
+Medication 4: Ibuprofen (Advil / Motrin)
+  - Type        : OTC — NSAID (acute relief)
+  - Dosage      : 400–600 mg orally with food, every 6–8 hours as needed
+  - Indication  : Acute pain relief for mild-to-moderate migraine headache
+                  and neck stiffness
+  - Instructions: Use for mild attacks only; avoid overuse (max 10 days/month).
+
+Medication 5: Ondansetron (Zofran)
+  - Type        : Prescription — Antiemetic
+  - Dosage      : 4 mg orally or sublingual at nausea onset during migraine
+  - Indication  : Treatment of nausea and vomiting during migraine episodes
+  - Instructions: Take with Sumatriptan if nausea is present at attack onset.
+
+Medication 6: Magnesium Glycinate
+  - Type        : OTC Supplement
+  - Dosage      : 400 mg orally once daily at bedtime
+  - Indication  : Migraine headache prevention and improvement of sleep quality
+  - Instructions: Consistent daily use required. Allow 2–3 months for full effect.
+
+Medication 7: Melatonin
+  - Type        : OTC Supplement
+  - Dosage      : 3 mg orally 30 minutes before target sleep time
+  - Indication  : Improving sleep quality and reducing sleep deprivation trigger
+  - Instructions: Use nightly. Addresses poor sleep trigger for migraine headache.
+
+Medication 8: Caffeine (Excedrin component note)
+  - Type        : OTC — Combination analgesic adjuvant
+  - Dosage      : 65 mg (as part of Excedrin Migraine, used on rare occasions)
+  - Indication  : Adjuvant analgesic for migraine headache
+  - Note        : Use sparingly due to caffeine withdrawal trigger risk.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TREATMENT OUTCOMES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Treatment Outcome 1: Sumatriptan — Effective for Acute Migraine Headache
+  - Medication      : Sumatriptan
+  - Symptom Treated : Migraine headache
+  - Effectiveness   : Effective
+  - Details         : Sumatriptan 50 mg achieves 75% pain relief within 2 hours
+                      in confirmed migraine headache attacks. Headache pain
+                      completely resolved in 50% of cases at 2-hour mark.
+                      Patient rates sumatriptan as "very helpful" for acute attacks.
+
+Treatment Outcome 2: Propranolol — Partially Effective for Prevention
+  - Medication      : Propranolol
+  - Symptom Treated : Migraine headache frequency
+  - Effectiveness   : Partially effective
+  - Details         : After 3 months of propranolol 40 mg twice daily, migraine
+                      headache frequency reduced from 12–15 episodes to 6–8
+                      episodes per month (approximately 50% reduction). Patient
+                      notes improved tolerability but desires further frequency
+                      reduction. Propranolol also reduces neck stiffness severity.
+
+Treatment Outcome 3: Amitriptyline — Effective for Sleep and Prevention
+  - Medication      : Amitriptyline
+  - Symptom Treated : Chronic fatigue and migraine headache
+  - Effectiveness   : Effective
+  - Details         : Amitriptyline 25 mg at bedtime improved sleep duration from
+                      5–6 hours to 7 hours per night within 3 weeks. Reduction
+                      of poor sleep trigger led to further 30% reduction in
+                      migraine headache frequency. Chronic fatigue severity
+                      decreased from moderate to mild.
+
+Treatment Outcome 4: Ibuprofen — Partially Effective for Mild Attacks
+  - Medication      : Ibuprofen
+  - Symptom Treated : Migraine headache, neck stiffness
+  - Effectiveness   : Partially effective
+  - Details         : Ibuprofen 600 mg provides adequate relief for mild migraine
+                      headache attacks (VAS < 6) but is ineffective for severe
+                      attacks. Useful for neck stiffness management. Overuse risk
+                      noted — patient advised to limit use.
+
+Treatment Outcome 5: Ondansetron — Effective for Nausea
+  - Medication      : Ondansetron
+  - Symptom Treated : Nausea and vomiting
+  - Effectiveness   : Effective
+  - Details         : Ondansetron 4 mg effectively controls nausea in 90% of
+                      migraine episodes within 30 minutes. Enables patient to
+                      tolerate oral sumatriptan without vomiting. Significant
+                      improvement in migraine headache management overall.
+
+Treatment Outcome 6: Magnesium Glycinate — Partially Effective Prevention
+  - Medication      : Magnesium Glycinate
+  - Symptom Treated : Migraine headache
+  - Effectiveness   : Partially effective
+  - Details         : Magnesium 400 mg daily resulted in 20% reduction in
+                      migraine headache frequency over 3 months. Aura frequency
+                      also decreased. Best results seen when combined with
+                      propranolol preventive therapy.
+
+Treatment Outcome 7: Melatonin — Effective for Sleep Quality
+  - Medication      : Melatonin
+  - Symptom Treated : Chronic fatigue, poor sleep (trigger reduction)
+  - Effectiveness   : Effective
+  - Details         : Melatonin 3 mg improved sleep onset latency from 45 minutes
+                      to 15 minutes. Reduced poor sleep trigger frequency by 60%.
+                      Chronic fatigue improved as a downstream effect.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LIFESTYLE FACTORS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Lifestyle Factor 1: Poor Sleep (Sleep Deprivation)
+  - Category    : Sleep
+  - Impact      : Negative
+  - Details     : Patient sleeps only 5–6 hours per night, significantly below
+                  the recommended 7–9 hours. Poor sleep is one of the top three
+                  triggers for migraine headache. Poor sleep also worsens chronic
+                  fatigue and reduces pain threshold. Sleep diary confirms
+                  consistent correlation between short sleep and next-day headache.
+
+Lifestyle Factor 2: High Psychological Stress
+  - Category    : Stress management
+  - Impact      : Negative
+  - Details     : Works 50–60 hours per week as senior project manager. No current
+                  stress management practices. High psychological stress is the
+                  most frequent confirmed trigger for migraine headache. Stress
+                  also worsens neck stiffness via muscle tension and increases
+                  fatigue through cortisol dysregulation.
+
+Lifestyle Factor 3: Low Water Intake / Dehydration
+  - Category    : Hydration
+  - Impact      : Negative
+  - Details     : Patient reports drinking approximately 1 litre of water daily
+                  (recommended: 2.5–3 litres). Dehydration is a confirmed
+                  trigger for migraine headache and significantly worsens chronic
+                  fatigue. Urine consistently dark yellow indicating chronic
+                  mild dehydration.
+
+Lifestyle Factor 4: High Caffeine Consumption
+  - Category    : Diet / Substance use
+  - Impact      : Negative (dual role)
+  - Details     : Consumes 4 cups of coffee daily. While caffeine acutely
+                  alleviates headache, daily high intake creates caffeine
+                  dependence. Caffeine withdrawal (missing morning coffee) is
+                  a direct and reliable trigger for migraine headache.
+
+Lifestyle Factor 5: Irregular Meal Timing
+  - Category    : Diet
+  - Impact      : Negative
+  - Details     : Frequently skips breakfast due to work schedule. Lunch often
+                  delayed to 2–3 PM. Irregular meal timing leads to hypoglycemia
+                  which triggers migraine headache and worsens chronic fatigue.
+                  Patient advised to eat small regular meals every 3–4 hours.
+
+Lifestyle Factor 6: Sedentary Lifestyle
+  - Category    : Exercise
+  - Impact      : Negative
+  - Details     : No regular physical activity. Desk job with minimal movement
+                  throughout the day. Sedentary lifestyle contributes to neck
+                  stiffness (poor posture), worsens chronic fatigue, and
+                  reduces endorphin levels which increases headache susceptibility.
+
+Lifestyle Factor 7: Screen Time and Posture
+  - Category    : Ergonomics / Environment
+  - Impact      : Negative
+  - Details     : 10+ hours of daily screen time without breaks. Poor desk
+                  ergonomics causes forward head posture. Prolonged screen exposure
+                  causes bright light exposure trigger and worsens photophobia.
+                  Screen time also disrupts sleep onset. Neck stiffness directly
+                  correlates with extended screen-use sessions.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RELATIONSHIP SUMMARY (Clinical Connections)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TRIGGER → SYMPTOM RELATIONSHIPS:
+  - Psychological stress TRIGGERS migraine headache
+  - Psychological stress TRIGGERS neck stiffness
+  - Poor sleep TRIGGERS migraine headache
+  - Poor sleep TRIGGERS chronic fatigue
+  - Bright light exposure TRIGGERS migraine headache
+  - Bright light exposure TRIGGERS photophobia
+  - Caffeine withdrawal TRIGGERS migraine headache
+  - Skipping meals TRIGGERS migraine headache
+  - Skipping meals TRIGGERS chronic fatigue
+  - Hormonal changes TRIGGERS migraine headache
+  - Weather / barometric pressure TRIGGERS migraine headache
+  - Strong odors TRIGGERS migraine headache
+  - Strong odors TRIGGERS nausea
+
+MEDICATION → SYMPTOM RELATIONSHIPS (ALLEVIATES):
+  - Sumatriptan ALLEVIATES migraine headache
+  - Propranolol ALLEVIATES migraine headache (preventive)
+  - Amitriptyline ALLEVIATES migraine headache (preventive)
+  - Amitriptyline ALLEVIATES chronic fatigue
+  - Ibuprofen ALLEVIATES migraine headache (mild)
+  - Ibuprofen ALLEVIATES neck stiffness
+  - Ondansetron ALLEVIATES nausea
+  - Magnesium glycinate ALLEVIATES migraine headache
+  - Melatonin ALLEVIATES chronic fatigue
+
+LIFESTYLE FACTOR → SYMPTOM RELATIONSHIPS (AFFECTS):
+  - Poor sleep AFFECTS migraine headache (worsens)
+  - Poor sleep AFFECTS chronic fatigue (worsens)
+  - High psychological stress AFFECTS migraine headache (worsens)
+  - High psychological stress AFFECTS neck stiffness (worsens)
+  - Low water intake AFFECTS migraine headache (worsens)
+  - Low water intake AFFECTS chronic fatigue (worsens)
+  - Sedentary lifestyle AFFECTS neck stiffness (worsens)
+  - Sedentary lifestyle AFFECTS chronic fatigue (worsens)
+  - Screen time AFFECTS photophobia (worsens)
+  - Screen time AFFECTS neck stiffness (worsens)
+
+SYMPTOM → SYMPTOM CO-OCCURRENCE:
+  - Visual aura PRECEDES migraine headache (occurs before headache)
+  - Migraine headache CORRELATES WITH nausea
+  - Migraine headache CORRELATES WITH photophobia
+  - Migraine headache CORRELATES WITH neck stiffness
+  - Migraine headache CORRELATES WITH visual aura
+
+MEDICATION → TREATMENT OUTCOME:
+  - Sumatriptan PRODUCES effective acute migraine headache relief (75% reduction)
+  - Propranolol PRODUCES 50% reduction in migraine headache frequency
+  - Amitriptyline PRODUCES improved sleep quality and headache prevention
+  - Ibuprofen PRODUCES partial relief for mild migraine and neck stiffness
+  - Ondansetron PRODUCES 90% control of nausea during migraine
+  - Magnesium glycinate PRODUCES 20% reduction in migraine headache frequency
+  - Melatonin PRODUCES improved sleep quality and fatigue reduction
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CLINICAL NOTES & PLAN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Assessment:
+  Chronic migraine with aura, ICHD-3 criteria met. Significant trigger burden
+  including modifiable lifestyle factors. Current preventive regimen
+  (propranolol + magnesium) achieving 50% reduction. Amitriptyline added for
+  sleep improvement which secondarily reduces poor-sleep trigger.
+
+Plan:
+  1. Continue sumatriptan 50–100 mg for acute migraine headache attacks.
+  2. Continue propranolol 40 mg BID, review at 6-month mark for dose increase.
+  3. Titrate amitriptyline to 50 mg at bedtime after 2 weeks if tolerated.
+  4. Continue magnesium glycinate 400 mg daily and melatonin 3 mg nightly.
+  5. Refer to physiotherapy for neck stiffness and posture correction.
+  6. Recommend stress management: cognitive behavioural therapy, mindfulness.
+  7. Advise patient to increase water intake to minimum 2.5 litres daily.
+  8. Provide headache diary for ongoing trigger identification.
+  9. Lifestyle modification: regular meals every 3–4 hours, reduce caffeine
+     gradually to 1–2 cups daily to minimise caffeine withdrawal trigger.
+  10. Screen ergonomics assessment; use blue-light blocking glasses.
+
+Follow-up: 6 weeks for medication review and lifestyle modification progress.
+
+Physician: Dr. R. Mehta, MD (Neurology)
+License  : MH-NEURO-10492
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+END OF RECORD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
