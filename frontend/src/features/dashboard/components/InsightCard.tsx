@@ -42,6 +42,15 @@ export function InsightCard({ pattern }: InsightCardProps) {
             {pattern.treatmentMemory}
           </p>
         </div>
+
+        {pattern.recommendation && (
+          <div className="rounded-2xl bg-pulse-mint/20 px-4 py-3 border border-pulse-green/30">
+            <p className="text-sm leading-5 text-pulse-ink">
+              <strong className="text-pulse-ink/85">Advice: </strong>
+              {pattern.recommendation}
+            </p>
+          </div>
+        )}
       </CardBody>
     </Card>
   );

@@ -127,23 +127,64 @@ class InsightsService:
             }
 
     async def generate_wearable_pattern(self):
+        import random
+        # 1. Generate 100 rows of sample wearable data
+        headers = ["HeartRate", "RestingHeartRate", "Steps", "CaloriesBurned", "DistanceTraveled", "ActiveZoneMinutes", "SleepDuration", "SleepScore", "SpO2", "StressScore"]
+        rows = []
+        metrics_list = []
+        for _ in range(100):
+            hr = random.randint(60, 140)
+            resting_hr = random.randint(55, 75)
+            steps = random.randint(1000, 18000)
+            calories = random.randint(1400, 3200)
+            distance = round(steps * 0.00075, 2)
+            active_mins = random.randint(0, 120)
+            sleep_dur = round(random.uniform(4.0, 9.5), 1)
+            sleep_score = random.randint(40, 96)
+            spo2 = round(random.uniform(91.0, 99.5), 1)
+            stress_score = random.randint(15, 95)
+            rows.append(f"{hr},{resting_hr},{steps},{calories},{distance},{active_mins},{sleep_dur},{sleep_score},{spo2},{stress_score}")
+            metrics_list.append({
+                "HeartRate": hr,
+                "RestingHeartRate": resting_hr,
+                "Steps": steps,
+                "CaloriesBurned": calories,
+                "DistanceTraveled": distance,
+                "ActiveZoneMinutes": active_mins,
+                "SleepDuration": sleep_dur,
+                "SleepScore": sleep_score,
+                "SpO2": spo2,
+                "StressScore": stress_score
+            })
+        
+        csv_data = ",".join(headers) + "\n" + "\n".join(rows)
+
         sys_msg = SystemMessage(
             content=(
-                "You are an AI analyzing wearable health data (sleep, HRV, resting heart rate). "
+                "You are an expert clinical AI analyzing daily wearable timeseries logs. "
+                "Analyze the provided timeseries data of 100 logs to find correlations between parameters "
+                "(e.g., how sleep score, active minutes, resting heart rate, and stress scores affect likely symptoms). "
                 "Output MUST be in valid JSON format ONLY. Do not include markdown formatting or extra text. "
-                "Generate a mock trigger pattern based on random wearable metrics. "
                 "The JSON must have this structure:\n"
                 "{\n"
-                '  "symptom": "Headache",\n'
-                '  "summary": "Headache episodes usually follow poor sleep plus dehydration before high-stress days.",\n'
-                '  "triggerCandidates": ["Poor sleep", "Low HRV", "High resting heart rate"],\n'
-                '  "treatmentMemory": "Hydration and earlier sleep reduced similar episodes in 3 of 4 attempts."\n'
+                '  "symptom": "Likely symptom (e.g. Headache, Fatigue, Cardiovascular strain)",\n'
+                '  "summary": "Clinical reasoning explaining why this symptom is likely based on data patterns (e.g., Sleep drops below 5h and stress score is above 80). Be realistic, descriptive, and non-deterministic.",\n'
+                '  "recommendation": "A concise one-liner advice of what needs to be done based on the analysis (e.g., Prioritize electrolyte hydration and sleep due to low recovery signals).",\n'
+                '  "accuracyScore": 85,\n'
+                '  "triggerCandidates": ["Poor sleep", "High stress", "Dehydration"],\n'
+                '  "treatmentMemory": "Historical treatments that proved effective for similar patterns."\n'
                 "}\n"
             )
         )
-        hum_msg = HumanMessage(content="Generate a random wearable health pattern insight.")
+        hum_msg = HumanMessage(
+            content=(
+                f"Analyze this 100-entry wearable log (CSV format):\n\n"
+                f"{csv_data}\n\n"
+                "Derive likely symptom, clinical pattern summary, recommendation, and accuracy score."
+            )
+        )
 
-        logger.info("[INSIGHTS] Calling Groq LLM for wearable pattern generation.")
+        logger.info("[INSIGHTS] Calling Groq LLM for wearable pattern generation and analysis.")
         try:
             response = self.llm.invoke([sys_msg, hum_msg])
             content = response.content.strip()
@@ -153,14 +194,44 @@ class InsightsService:
                 content = content[3:-3]
             
             parsed = json.loads(content)
-            return parsed
+            
+            # Ingest generated pattern summary to Cognee so it remembers
+            logger.info("[WEARABLE] Ingesting wearable pattern to Cognee...")
+            try:
+                report = (
+                    "Wearable Health Data Ingestion Summary\n"
+                    "=====================================\n\n"
+                    f"Generated Logs analyzed: 100 timeseries entries.\n"
+                    f"Detected Symptom Risk: {parsed.get('symptom', '')}\n"
+                    f"Clinical Summary: {parsed.get('summary', '')}\n"
+                    f"Recommendation: {parsed.get('recommendation', '')}\n"
+                    f"Accuracy Score: {parsed.get('accuracyScore', 80)}%\n"
+                    f"Triggers: {', '.join(parsed.get('triggerCandidates', []))}\n"
+                )
+                with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt", encoding="utf-8") as tmp:
+                    tmp.write(report)
+                    tmp_path = tmp.name
+                await graph_service.process_pdf(tmp_path, "wearable_sync_report.txt")
+                os.unlink(tmp_path)
+            except Exception as graph_e:
+                logger.error(f"[WEARABLE] Failed to ingest wearable sync report: {graph_e}")
+
+            return {
+                "pattern": parsed,
+                "metrics": metrics_list
+            }
         except Exception as e:
             logger.error(f"[INSIGHTS] LLM parsing failed for wearable pattern: {e}")
             return {
-                "symptom": "Headache",
-                "summary": "Headache episodes usually follow poor sleep (fallback data).",
-                "triggerCandidates": ["Poor sleep", "Low HRV"],
-                "treatmentMemory": "Hydration and earlier sleep reduced similar episodes."
+                "pattern": {
+                    "symptom": "Headache",
+                    "summary": "Headache episodes usually follow poor sleep (fallback data).",
+                    "recommendation": "Ensure 8+ hours of sleep and regular hydration.",
+                    "accuracyScore": 75,
+                    "triggerCandidates": ["Poor sleep", "Low HRV"],
+                    "treatmentMemory": "Hydration and earlier sleep reduced similar episodes."
+                },
+                "metrics": metrics_list
             }
 
 insights_service = InsightsService()

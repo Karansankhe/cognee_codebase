@@ -1,9 +1,12 @@
 import { Badge } from "../../../components/ui/Badge";
 import { Card, CardBody, CardHeader } from "../../../components/ui/Card";
 import type { EvidenceCitation } from "../types/dashboard.types";
+import { Loader2, FileText } from "lucide-react";
 
 interface EvidenceListProps {
   citations: EvidenceCitation[];
+  onGenerateSummary: () => void;
+  isGeneratingSummary: boolean;
 }
 
 const relationshipTone: Record<
@@ -15,10 +18,27 @@ const relationshipTone: Record<
   contradicts: "rose",
 };
 
-export function EvidenceList({ citations }: EvidenceListProps) {
+export function EvidenceList({ citations, onGenerateSummary, isGeneratingSummary }: EvidenceListProps) {
   return (
     <Card className="bg-white/60">
-      <CardHeader title="Past Entries" eyebrow="Audit-ready history" />
+      <CardHeader
+        title="Past Entries"
+        eyebrow="Audit-ready history"
+        action={
+          <button
+            onClick={onGenerateSummary}
+            disabled={isGeneratingSummary}
+            className="flex items-center gap-2 rounded-full border border-pulse-line bg-white/80 px-3 py-1.5 text-xs font-semibold text-pulse-ink shadow-sm transition-all hover:bg-pulse-green/20 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isGeneratingSummary ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <FileText className="h-3 w-3" />
+            )}
+            Doctor Summary
+          </button>
+        }
+      />
       <CardBody>
         <div className="space-y-2">
           {citations.slice(0, 3).map((citation) => (

@@ -92,8 +92,7 @@ MEDICAL_GRAPH_MODEL: dict = {
                 },
                 "category": {
                     "type": "string",
-                    "enum": ["environmental", "dietary", "psychological", "hormonal", "physical", "sensory"],
-                    "description": "Category of the trigger"
+                    "description": "Category of the trigger (e.g. environmental, dietary, psychological, physical)"
                 },
                 "triggers_symptoms": {
                     "type": "array",
@@ -118,7 +117,6 @@ MEDICAL_GRAPH_MODEL: dict = {
                 },
                 "medication_type": {
                     "type": "string",
-                    "enum": ["prescription", "OTC", "supplement"],
                     "description": "Whether it is a prescription drug, over-the-counter, or supplement"
                 },
                 "treats_symptoms": {
@@ -140,8 +138,7 @@ MEDICAL_GRAPH_MODEL: dict = {
                 },
                 "effectiveness": {
                     "type": "string",
-                    "enum": ["effective", "partially_effective", "ineffective"],
-                    "description": "Effectiveness level"
+                    "description": "Effectiveness level (e.g. effective, partially_effective, ineffective)"
                 },
                 "produced_by_medication": {
                     "type": "string",
@@ -165,14 +162,11 @@ MEDICAL_GRAPH_MODEL: dict = {
                 },
                 "category": {
                     "type": "string",
-                    "enum": ["sleep", "diet", "exercise", "hydration", "stress_management",
-                             "substance_use", "ergonomics"],
-                    "description": "Category of the lifestyle factor"
+                    "description": "Category of the lifestyle factor (e.g. sleep, diet, exercise, hydration)"
                 },
                 "impact": {
                     "type": "string",
-                    "enum": ["positive", "negative", "neutral"],
-                    "description": "Documented health impact"
+                    "description": "Documented health impact (e.g. positive, negative, neutral)"
                 },
                 "affects_symptoms": {
                     "type": "array",
@@ -193,8 +187,7 @@ MEDICAL_GRAPH_MODEL: dict = {
                 },
                 "severity": {
                     "type": "string",
-                    "enum": ["mild", "moderate", "severe"],
-                    "description": "Severity as documented"
+                    "description": "Severity as documented (e.g. mild, moderate, severe)"
                 },
                 "frequency": {
                     "type": "string",

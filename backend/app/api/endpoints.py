@@ -22,6 +22,9 @@ class InsightsPDFRequest(BaseModel):
     weekly_plan: str = ""
     trends: list
 
+class SummaryPDFRequest(BaseModel):
+    summary: str
+
 class SymptomLogRequest(BaseModel):
     symptom_name: str
     logged_at: str
@@ -102,6 +105,35 @@ async def upload_file(file: UploadFile = File(...)):
             except Exception:
                 pass
 
+
+class OnboardingQuizAnswers(BaseModel):
+    answers: list
+
+@router.post("/onboarding/remember")
+async def remember_onboarding(req: OnboardingQuizAnswers):
+    logger.info("[ONBOARDING] Remembering onboarding answers...")
+    try:
+        # Format quiz answers as a summary text
+        report = "Patient Onboarding Quiz Baseline Survey\n"
+        report += "========================================\n\n"
+        for idx, qa in enumerate(req.answers):
+            q_text = qa.get("question", f"Question {idx+1}")
+            a_text = qa.get("answer", "No answer provided")
+            report += f"Q{idx+1}: {q_text}\n"
+            report += f"A{idx+1}: {a_text}\n\n"
+        
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt", encoding="utf-8") as tmp:
+            tmp.write(report)
+            tmp_path = tmp.name
+        
+        # Process with Cognee RAG
+        logger.info(f"[ONBOARDING] Ingesting survey file: {tmp_path}")
+        await graph_service.process_pdf(tmp_path, "patient_onboarding_survey.txt")
+        os.unlink(tmp_path)
+        return {"status": "success"}
+    except Exception as e:
+        logger.error(f"[ONBOARDING] Failed to save survey: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/query")
 async def query_graph(req: QueryRequest):
@@ -281,6 +313,89 @@ async def download_insights_pdf(req: InsightsPDFRequest):
         )
     except Exception as e:
         logger.error(f"[INSIGHTS PDF] Error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@router.post("/summary/pdf")
+async def download_summary_pdf(req: SummaryPDFRequest):
+    try:
+        from fpdf import FPDF
+        import re
+        
+        class PDF(FPDF):
+            def header(self):
+                self.set_font('Arial', 'B', 16)
+                self.set_text_color(18, 53, 60) # Dark teal
+                self.cell(0, 10, 'Pulse Medical Record Summary', 0, 1, 'L')
+                self.set_font('Arial', 'I', 9)
+                self.set_text_color(110, 110, 110)
+                self.cell(0, 5, 'Doctor-Ready Visit Summary (Generated via Cognee GraphRAG)', 0, 1, 'L')
+                self.set_draw_color(18, 53, 60)
+                self.set_line_width(0.5)
+                self.line(10, 26, 200, 26)
+                self.ln(10)
+                
+            def footer(self):
+                self.set_y(-15)
+                self.set_font('Arial', 'I', 8)
+                self.set_text_color(150, 150, 150)
+                self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
+                
+            def section_header(self, title):
+                self.set_font('Arial', 'B', 12)
+                self.set_text_color(18, 53, 60)
+                self.set_fill_color(230, 245, 235) # Light mint background
+                self.cell(0, 8, title, 0, 1, 'L', 1)
+                self.ln(3)
+                
+            def section_body(self, text):
+                self.set_font('Arial', '', 10)
+                self.set_text_color(60, 60, 60)
+                text_latin = text.encode('latin-1', 'replace').decode('latin-1')
+                self.multi_cell(0, 6, text_latin)
+                self.ln(5)
+
+        pdf = PDF()
+        pdf.add_page()
+        
+        raw_text = req.summary
+        pattern = r'(?=\n\*\*[^*]+\*\*)'
+        sections = re.split(pattern, "\n" + raw_text)
+        
+        has_content = False
+        for sec in sections:
+            sec = sec.strip()
+            if not sec:
+                continue
+            
+            lines = sec.split('\n', 1)
+            title = lines[0].replace('**', '').strip()
+            body = lines[1].strip() if len(lines) > 1 else ""
+            
+            if title and body:
+                pdf.section_header(title)
+                pdf.section_body(body)
+                has_content = True
+                
+        if not has_content:
+            pdf.section_header("Patient History Summary")
+            pdf.section_body(raw_text)
+
+        import tempfile
+        import os
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+        tmp.close()
+        pdf.output(tmp.name)
+        
+        return FileResponse(
+            path=tmp.name,
+            filename="patient_visit_summary.pdf",
+            media_type="application/pdf",
+            background=None
+        )
+    except Exception as e:
+        logger.error(f"[SUMMARY PDF] Error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
