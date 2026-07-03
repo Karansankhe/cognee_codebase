@@ -125,7 +125,7 @@ export function AuthPage() {
       );
 
       window.setTimeout(() => {
-        navigate(isSignup ? "/onboarding" : "/dashboard");
+        navigate("/onboarding");
       }, 420);
     }
   }

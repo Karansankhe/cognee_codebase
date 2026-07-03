@@ -19,6 +19,7 @@ import { TreatmentEffectivenessPanel } from "../../features/dashboard/components
 import { TimelineFeed } from "../../features/dashboard/components/TimelineFeed";
 import { TrendsPanel } from "../../features/dashboard/components/TrendsPanel";
 import { WearableSummaryPanel } from "../../features/dashboard/components/WearableSummaryPanel";
+import { EvaluationHarness } from "../../features/dashboard/components/EvaluationHarness";
 import type {
   DashboardData,
   EvidenceCitation,
