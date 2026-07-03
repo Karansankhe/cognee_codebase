@@ -28,6 +28,7 @@ document submitted by the user — no predefined/hardcoded data.
 import json
 import logging
 import re
+import asyncio
 from typing import Any, Optional
 
 import httpx
@@ -606,6 +607,9 @@ class CogneeGraphService:
             logger.info(f"[UPLOAD] ✓ Ingestion complete — items_processed={items}")
             logger.info("=" * 60)
 
+            # Trigger memify in the background to return immediately
+            asyncio.create_task(self.memify(data=original_filename))
+
             return {
                 "status": "success",
                 "message": f"{original_filename} ingested and knowledge graph built via Cognee Cloud.",
@@ -934,6 +938,9 @@ class CogneeGraphService:
             logger.info(f"[LOG_SYMPTOM] ✓ '{symptom_name}' added to knowledge graph")
             logger.info("-" * 60)
 
+            # Trigger memify in the background to return immediately
+            asyncio.create_task(self.memify(data=f"Symptom log: {symptom_name} ({severity})"))
+
             return {
                 "status": "success",
                 "symptom": symptom_name,
@@ -1109,6 +1116,9 @@ class CogneeGraphService:
             logger.info(f"[LOG_OUTCOME] ✓ Outcome for '{treatment}' added to knowledge graph")
             logger.info("-" * 60)
 
+            # Trigger memify in the background to return immediately
+            asyncio.create_task(self.memify(data=f"Outcome log: {treatment} -> {result}"))
+
             return {
                 "status": "success",
                 "treatment": treatment,
@@ -1131,6 +1141,51 @@ class CogneeGraphService:
                     _os.unlink(tmp_path)
                 except Exception:
                     pass
+
+    async def memify(self, data: str = "", dataset_id: str = "", node_name: list = None) -> dict:
+        """
+        Enrich/memify the knowledge graph by calling /api/v1/memify.
+        """
+        logger.info("=" * 60)
+        logger.info(f"[MEMIFY] Triggering memify for dataset: {self.dataset} | data={data}")
+        
+        payload = {
+            "extractionTasks": [],
+            "enrichmentTasks": [],
+            "data": data or "",
+            "datasetName": self.dataset,
+            "datasetId": dataset_id or "",
+            "nodeName": node_name or [],
+            "runInBackground": True
+        }
+        
+        memify_headers = {
+            "Authorization": f"Bearer {settings.cognee_api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        try:
+            async with httpx.AsyncClient(timeout=300.0, verify=False) as client:
+                resp = await client.post(
+                    "https://api.cognee.ai/api/v1/memify",
+                    headers=memify_headers,
+                    json=payload,
+                )
+            
+            logger.info(f"[MEMIFY] Cognee response status: {resp.status_code}")
+            
+            if resp.status_code == 409:
+                detail = resp.text or "Memify failed on Cognee side."
+                logger.error(f"[MEMIFY] Cognee 409: {detail}")
+                raise RuntimeError(f"Cognee memify error: {detail}")
+                
+            resp.raise_for_status()
+            logger.info(f"[MEMIFY] ✓ Memify completed successfully.")
+            logger.info("=" * 60)
+            return resp.json() if resp.content else {}
+        except Exception as e:
+            logger.error(f"[MEMIFY] Failed: {e}")
+            return {"status": "failed", "error": str(e)}
 
 
 # ── Singleton ─────────────────────────────────────────────────────────────────

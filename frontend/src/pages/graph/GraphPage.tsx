@@ -46,10 +46,21 @@ export function GraphPage() {
     setIsQuerying(true);
 
     try {
+      const patientInfo = localStorage.getItem("pulse_patient_info");
+      const insights = localStorage.getItem("pulse_insights");
+      const syncedMetrics = localStorage.getItem("pulse_synced_metrics");
+
       const response = await fetch("/api/v1/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: text }),
+        body: JSON.stringify({
+          question: text,
+          live_context: {
+            patient_info: patientInfo ? JSON.parse(patientInfo) : null,
+            insights: insights ? JSON.parse(insights) : null,
+            synced_metrics: syncedMetrics ? JSON.parse(syncedMetrics) : null,
+          }
+        }),
       });
 
       if (!response.ok) throw new Error("Query failed");

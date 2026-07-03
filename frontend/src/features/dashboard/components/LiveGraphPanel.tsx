@@ -118,28 +118,33 @@ export function LiveGraphPanel() {
     ctx.fillStyle = "rgba(255,255,255,0.85)";
     ctx.fill();
 
-    // Label (only when zoomed in enough)
-    if (globalScale >= 0.7) {
+    // Label (always display when globalScale is >= 0.15)
+    if (globalScale >= 0.15) {
       const label = node.name?.length > 18 ? node.name.slice(0, 16) + "…" : (node.name ?? node.id);
-      const fontSize = Math.max(8, 11 / globalScale);
-      ctx.font = `600 ${fontSize}px Inter, sans-serif`;
+      const fontSize = Math.max(6, Math.min(12, 10 / Math.sqrt(globalScale)));
+      ctx.font = `600 ${fontSize}px Inter, -apple-system, sans-serif`;
       ctx.textAlign = "center";
-      ctx.textBaseline = "top";
+      ctx.textBaseline = "middle";
 
       // Text background pill
       const tw = ctx.measureText(label).width;
-      const pad = 3;
-      const pillX = node.x! - tw / 2 - pad;
-      const pillY = node.y! + r + 2;
-      const pillW = tw + pad * 2;
-      const pillH = fontSize + 4;
-      ctx.fillStyle = "rgba(255,255,255,0.88)";
+      const padX = 5;
+      const padY = 3;
+      const pillX = node.x! - tw / 2 - padX;
+      const pillY = node.y! + r + 4;
+      const pillW = tw + padX * 2;
+      const pillH = fontSize + padY * 2;
+      
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.strokeStyle = "rgba(18, 53, 60, 0.15)";
+      ctx.lineWidth = 0.5;
       ctx.beginPath();
-      ctx.roundRect(pillX, pillY, pillW, pillH, 3);
+      ctx.roundRect(pillX, pillY - pillH/2, pillW, pillH, 4);
       ctx.fill();
+      ctx.stroke();
 
-      ctx.fillStyle = "#111111";
-      ctx.fillText(label, node.x!, pillY + 2);
+      ctx.fillStyle = "#12353c";
+      ctx.fillText(label, node.x!, pillY);
     }
   }, [selectedNode]);
 
@@ -206,13 +211,13 @@ export function LiveGraphPanel() {
             // Rendering
             nodeCanvasObject={drawNode as any}
             nodeCanvasObjectMode={() => "replace"}
-            linkColor={() => "rgba(17,17,17,0.18)"}
+            linkColor={() => "rgba(18,53,60,0.14)"}
             linkWidth={1.5}
             linkDirectionalArrowLength={5}
             linkDirectionalArrowRelPos={1}
             linkDirectionalParticles={1}
             linkDirectionalParticleWidth={1.5}
-            linkDirectionalParticleColor={() => "rgba(17,17,17,0.5)"}
+            linkDirectionalParticleColor={() => "rgba(18,53,60,0.4)"}
             linkLabel={(link: any) => (link as GraphLink).type}
             // Interaction
             onNodeClick={(node: any) =>
@@ -230,16 +235,42 @@ export function LiveGraphPanel() {
 
       {/* Selected node detail */}
       {selectedNode && (
-        <div className="border-t border-pulse-line px-4 py-2.5">
-          <div className="flex items-center gap-2">
+        <div className="border-t border-pulse-line px-4 py-3 bg-pulse-surface/30">
+          <div className="flex items-center gap-2 mb-2">
             <span
-              className="h-2.5 w-2.5 rounded-full"
+              className="h-2.5 w-2.5 rounded-full animate-pulse"
               style={{ background: getLabelColor(selectedNode.label) }}
             />
-            <p className="text-sm font-semibold text-pulse-ink">{selectedNode.name}</p>
-            <span className="ml-auto rounded-full bg-pulse-surface px-2 py-0.5 text-[10px] font-medium text-pulse-muted">
+            <p className="text-sm font-bold text-pulse-ink">{selectedNode.name}</p>
+            <span className="ml-auto rounded-full bg-pulse-line/60 px-2 py-0.5 text-[10px] font-semibold text-pulse-ink">
               {selectedNode.label}
             </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-xs text-pulse-muted">
+            {selectedNode.severity && (
+              <div><span className="font-semibold text-pulse-ink">Severity:</span> {selectedNode.severity}</div>
+            )}
+            {selectedNode.frequency && (
+              <div><span className="font-semibold text-pulse-ink">Frequency:</span> {selectedNode.frequency}</div>
+            )}
+            {selectedNode.duration && (
+              <div><span className="font-semibold text-pulse-ink">Duration:</span> {selectedNode.duration}</div>
+            )}
+            {selectedNode.dosage && (
+              <div><span className="font-semibold text-pulse-ink">Dosage:</span> {selectedNode.dosage}</div>
+            )}
+            {selectedNode.medication_type && (
+              <div><span className="font-semibold text-pulse-ink">Type:</span> {selectedNode.medication_type}</div>
+            )}
+            {selectedNode.effectiveness && (
+              <div><span className="font-semibold text-pulse-ink">Effectiveness:</span> {selectedNode.effectiveness}</div>
+            )}
+            {selectedNode.category && (
+              <div><span className="font-semibold text-pulse-ink">Category:</span> {selectedNode.category}</div>
+            )}
+            {selectedNode.impact && (
+              <div><span className="font-semibold text-pulse-ink">Impact:</span> {selectedNode.impact}</div>
+            )}
           </div>
         </div>
       )}

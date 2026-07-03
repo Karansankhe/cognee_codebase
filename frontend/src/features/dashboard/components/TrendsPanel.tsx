@@ -87,7 +87,7 @@ export function TrendsPanel({ trends: defaultTrends }: TrendsPanelProps) {
         <p className="text-sm leading-5 text-pulse-muted">{displayData.description}</p>
         <div className="space-y-2">
           {displayData.trends.map((trend, i) => (
-            <div key={i} className="grid grid-cols-[80px_1fr_60px] items-center gap-3">
+            <div key={i} className="grid grid-cols-[100px_1fr_60px] items-center gap-3">
               <span className="text-xs font-semibold">{trend.label}</span>
               <div className="h-2 overflow-hidden rounded-full bg-white">
                 <div

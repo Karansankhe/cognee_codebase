@@ -1,5 +1,6 @@
 import json
 import logging
+import asyncio
 from duckduckgo_search import DDGS
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -24,7 +25,8 @@ class InsightsService:
         logger.info(f"[INSIGHTS] Searching DuckDuckGo for: {query}")
         
         try:
-            results = DDGS().text(query, max_results=3)
+            ddg = DDGS()
+            results = await asyncio.to_thread(ddg.text, query, max_results=3)
             search_context = "\n".join([r['body'] for r in results])
         except Exception as e:
             logger.error(f"[INSIGHTS] DuckDuckGo search failed: {e}")
@@ -53,17 +55,16 @@ class InsightsService:
                 "Output MUST be in valid JSON format ONLY. Do not include markdown formatting or extra text. "
                 "The JSON must have this structure:\n"
                 "{\n"
-                '  "description": "A short 1-sentence insight.",\n'
+                '  "description": "A short, single-line (1 sentence) clinical insight summarizing the temporal/seasonal risk based on region and habits.",\n'
                 '  "detailed_report": "An extremely elaborate, exhaustive report (at least 600-800 words) breaking down the correlation between the patient\'s medical history, current habits, triggers, and the environmental climate data. Discuss physiological mechanisms, potential future risks, and comprehensive health impact.",\n'
                 '  "weekly_plan": "A highly detailed, day-by-day (Monday to Sunday) actionable weekly plan. Each day should have specific routines for diet, hydration, sleep hygiene, and symptom management tailored to their history and the climate.",\n'
                 '  "trends": [\n'
-                '    {"label": "Mon", "value": 80, "text": "High"},\n'
-                '    {"label": "Thu", "value": 60, "text": "Medium"},\n'
-                '    {"label": "Monsoon", "value": 90, "text": "2.3x"},\n'
-                '    {"label": "Winter", "value": 30, "text": "Low"}\n'
+                '    {"label": "LabelName", "value": 0-100, "text": "DynamicTextValue"}\n'
                 "  ]\n"
                 "}\n"
-                "The labels can be dynamically based on the climate data and habits."
+                "CRITICAL: Do NOT include any mock/static multipliers (like 2.3x, 3.3x, etc.) or hardcoded placeholders. "
+                "The 'trends' array must consist of 4 entries. The labels, values (0-100 intensity score), and text (e.g., 'Elevated', 'High Risk', 'Stable', '8 hours') MUST be dynamically calculated based on "
+                "the real weather search context and patient data feeded (e.g. tracking climate parameters like Temperature, Humidity, Sleep Deficit, Hydration Level, or UV Index)."
             )
         )
         hum_msg = HumanMessage(
@@ -114,15 +115,31 @@ class InsightsService:
             return parsed
         except Exception as e:
             logger.error(f"[INSIGHTS] LLM parsing failed: {e}")
+            # Calculate dynamic metrics for fallback
+            water_num = 1.0
+            try:
+                water_num = float(''.join(c for c in water_intake if c.isdigit() or c == '.'))
+            except Exception:
+                pass
+            
+            sleep_num = 7.0
+            try:
+                sleep_num = float(''.join(c for c in sleep_amount if c.isdigit() or c == '.'))
+            except Exception:
+                pass
+
+            hydration_val = int(min(100, max(0, (water_num / 3.0) * 100)))
+            sleep_val = int(min(100, max(0, (sleep_num / 8.0) * 100)))
+            
             return {
-                "description": "Unable to generate insights at this time.",
-                "detailed_report": "Our AI service is currently unable to synthesize your detailed report. Please ensure your habits are correctly logged and try again later.",
+                "description": f"AI service offline. Fallback tracking active for {location}.",
+                "detailed_report": f"Unable to generate detailed report. Location: {location}, Water: {water_intake}, Sleep: {sleep_amount}, Habits: {other_habits}.",
                 "weekly_plan": "1. Stay hydrated.\n2. Ensure adequate sleep.\n3. Log symptoms daily.",
                 "trends": [
-                    {"label": "Mon", "value": 80, "text": "High"},
-                    {"label": "Thu", "value": 60, "text": "Medium"},
-                    {"label": "Summer", "value": 90, "text": "2.3x"},
-                    {"label": "Winter", "value": 30, "text": "Low"}
+                    {"label": "Hydration", "value": hydration_val, "text": f"{water_intake}"},
+                    {"label": "Sleep", "value": sleep_val, "text": f"{sleep_amount}"},
+                    {"label": "Climate Risk", "value": 50, "text": "Moderate"},
+                    {"label": "Stability", "value": 75, "text": "Stable"}
                 ]
             }
 
