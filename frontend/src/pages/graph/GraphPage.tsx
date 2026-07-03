@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Send, Loader2, Sparkles, User, Brain, Plus, Mic, Image, PenTool, Globe } from "lucide-react";
+import { Send, Loader2, Sparkles, User, Brain, Plus, Mic, Image, PenTool, Globe, Volume2 } from "lucide-react";
 import { AppShell } from "../../components/layout/AppShell";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
 
@@ -26,6 +26,101 @@ export function GraphPage() {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isQuerying, setIsQuerying] = useState(false);
+
+  // ElevenLabs STT & TTS Voice States
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const [playingMessageIdx, setPlayingMessageIdx] = useState<number | null>(null);
+
+  const toggleRecording = async () => {
+    if (isRecording) {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
+      setIsRecording(false);
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+          const formData = new FormData();
+          formData.append("file", audioBlob, "audio.webm");
+
+          stream.getTracks().forEach((track) => track.stop());
+
+          setIsQuerying(true);
+          try {
+            const response = await fetch("/api/v1/speech-to-text", {
+              method: "POST",
+              body: formData,
+            });
+            if (!response.ok) throw new Error("STT failed");
+            const result = await response.json();
+            if (result.text) {
+              setInputValue(result.text);
+            }
+          } catch (err) {
+            console.error("Transcription failed", err);
+            alert("Speech transcription failed. Ensure ELEVENLABS_API_KEY is set in backend .env.");
+          } finally {
+            setIsQuerying(false);
+          }
+        };
+
+        mediaRecorder.start();
+        setIsRecording(true);
+      } catch (err) {
+        console.error("Microphone access failed", err);
+        alert("Unable to access microphone. Please check permissions.");
+      }
+    }
+  };
+
+  const handleSpeak = async (text: string, idx: number) => {
+    if (playingMessageIdx === idx) {
+      setPlayingMessageIdx(null);
+      return;
+    }
+
+    setPlayingMessageIdx(idx);
+    try {
+      const response = await fetch("/api/v1/text-to-speech", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.detail || "TTS generation failed");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      
+      audio.onended = () => {
+        setPlayingMessageIdx(null);
+      };
+
+      await audio.play();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Failed to generate speech. Make sure ELEVENLABS_API_KEY is configured in backend.");
+      setPlayingMessageIdx(null);
+    }
+  };
 
   const handleNavigate = (page: string) => {
     if (page === "Dashboard") {
@@ -143,7 +238,16 @@ export function GraphPage() {
                     className="flex-1 bg-transparent text-sm text-pulse-ink outline-none placeholder:text-pulse-muted/80"
                   />
                   
-                  <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
+                  <button
+                    type="button"
+                    onClick={toggleRecording}
+                    className={`transition cursor-pointer rounded-full p-1.5 ${
+                      isRecording 
+                        ? "bg-red-500 text-white animate-pulse" 
+                        : "text-pulse-muted hover:text-pulse-ink hover:bg-pulse-surface"
+                    }`}
+                    title={isRecording ? "Stop recording" : "Record voice"}
+                  >
                     <Mic className="h-5 w-5" />
                   </button>
                   
@@ -224,13 +328,26 @@ export function GraphPage() {
                         {msg.sender === "user" ? <User className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
                       </div>
                       <div
-                        className={`rounded-[20px] px-4 py-2.5 text-sm leading-6 shadow-sm ${
+                        className={`rounded-[20px] px-4 py-2.5 text-sm leading-6 shadow-sm relative group ${
                           msg.sender === "user"
                             ? "bg-pulse-ink text-white"
                             : "bg-pulse-mint/20 border border-pulse-green/20 text-pulse-ink"
                         }`}
                       >
                         <p className="whitespace-pre-wrap">{msg.text}</p>
+                        
+                        {msg.sender === "ai" && (
+                          <button
+                            type="button"
+                            onClick={() => handleSpeak(msg.text, idx)}
+                            className={`absolute -right-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition p-1.5 rounded-full bg-white border border-pulse-line shadow-sm cursor-pointer ${
+                              playingMessageIdx === idx ? "opacity-100 text-pulse-green bg-pulse-green/10 animate-pulse" : "text-pulse-muted hover:text-pulse-ink"
+                            }`}
+                            title="Listen"
+                          >
+                            <Volume2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -271,7 +388,16 @@ export function GraphPage() {
                       className="flex-1 bg-transparent text-sm text-pulse-ink outline-none placeholder:text-pulse-muted"
                     />
                     
-                    <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
+                    <button
+                      type="button"
+                      onClick={toggleRecording}
+                      className={`transition cursor-pointer rounded-full p-1.5 ${
+                        isRecording 
+                          ? "bg-red-500 text-white animate-pulse" 
+                          : "text-pulse-muted hover:text-pulse-ink hover:bg-pulse-surface"
+                      }`}
+                      title={isRecording ? "Stop recording" : "Record voice"}
+                    >
                       <Mic className="h-5 w-5" />
                     </button>
                     

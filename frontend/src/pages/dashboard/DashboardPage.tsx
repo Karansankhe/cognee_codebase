@@ -11,7 +11,6 @@ import {
 } from "../../features/dashboard/components/DashboardModal";
 import { DashboardHeader } from "../../features/dashboard/components/DashboardHeader";
 import { EvidenceList } from "../../features/dashboard/components/EvidenceList";
-import { EvaluationHarness } from "../../features/dashboard/components/EvaluationHarness";
 import { InsightCard } from "../../features/dashboard/components/InsightCard";
 import { LiveGraphPanel } from "../../features/dashboard/components/LiveGraphPanel";
 import { PatientSnapshot } from "../../features/dashboard/components/PatientSnapshot";
@@ -68,7 +67,29 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   };
 
   useEffect(() => {
-    void getDashboardData().then(setData);
+    void getDashboardData().then((mockData) => {
+      // Create a shallow copy of mockData to prevent mutating shared imports
+      const updatedData = { ...mockData };
+      const stored = localStorage.getItem("pulse_insights");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed.accuracy_score !== undefined) {
+            updatedData.activePattern = {
+              ...updatedData.activePattern,
+              consistency: {
+                score: parsed.accuracy_score,
+                matchedEpisodes: parsed.matched_episodes ?? 4,
+                totalEpisodes: parsed.total_episodes ?? 5,
+              }
+            };
+          }
+        } catch (err) {
+          console.error("Failed to parse stored insights for confidence panel", err);
+        }
+      }
+      setData(updatedData);
+    });
   }, []);
 
   const handleGenerateSummary = async () => {
@@ -296,7 +317,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <div className="grid min-h-0 content-start gap-4">
             <ConfidencePanel pattern={data.activePattern} />
             <TreatmentEffectivenessPanel pattern={data.activePattern} />
-            <EvaluationHarness evaluation={data.systemEvaluation} />
             <EvidenceList
               citations={data.citations}
               onGenerateSummary={handleGenerateSummary}

@@ -175,6 +175,11 @@ async def query_graph(req: QueryRequest):
         elapsed = time.perf_counter() - t0
 
         if req.live_context:
+            # Clean and limit wearable metrics to prevent token overflow on Groq
+            metrics = req.live_context.get("synced_metrics", [])
+            if isinstance(metrics, list) and len(metrics) > 5:
+                req.live_context["synced_metrics"] = metrics[-5:]
+
             from langchain_core.messages import SystemMessage, HumanMessage
             import json
             sys_msg = SystemMessage(
@@ -509,5 +514,36 @@ async def get_graph():
         return graph_data
     except Exception as e:
         logger.error(f"[GRAPH] ✗ Error fetching graph: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+class TTSRequest(BaseModel):
+    text: str
+    voice_id: Optional[str] = None
+
+from app.services.elevenlabs_service import elevenlabs_service
+from fastapi.responses import StreamingResponse
+import io
+
+@router.post("/text-to-speech")
+async def text_to_speech_endpoint(req: TTSRequest):
+    try:
+        audio_data = await elevenlabs_service.text_to_speech(req.text, req.voice_id)
+        return StreamingResponse(io.BytesIO(audio_data), media_type="audio/mpeg")
+    except ValueError as val_e:
+        raise HTTPException(status_code=400, detail=str(val_e))
+    except Exception as e:
+        if "402" in str(e):
+            raise HTTPException(status_code=402, detail="ElevenLabs character quota exhausted (402 Payment Required). Please verify your account limits or plan.")
+        logger.error(f"[TTS] Error generating speech: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/speech-to-text")
+async def speech_to_text_endpoint(file: UploadFile = File(...)):
+    try:
+        audio_content = await file.read()
+        transcription = await elevenlabs_service.transcribe_audio(audio_content, file.filename)
+        return {"text": transcription}
+    except Exception as e:
+        logger.error(f"[STT] Error transcribing speech: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
