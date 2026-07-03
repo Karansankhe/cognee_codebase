@@ -1,3 +1,150 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .pulse-wave {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 900;
+    stroke-dashoffset: 900;
+    animation: pulse-draw 2.2s ease-out forwards, pulse-breathe 7s ease-in-out 2.2s infinite;
+  }
+
+  .pulse-wave-lavender {
+    stroke: #9899ff;
+    stroke-width: 5;
+    opacity: 0.92;
+  }
+
+  .pulse-wave-ink {
+    stroke: #111111;
+    stroke-width: 5.5;
+    animation-delay: 0.22s, 2.42s;
+  }
+
+  .pulse-rise {
+    animation: pulse-rise 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .pulse-rise-delay {
+    animation: pulse-rise 0.95s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+  }
+
+  .pulse-float {
+    animation: pulse-float 5.5s ease-in-out infinite;
+  }
+
+  .pulse-float-delay {
+    animation: pulse-float 6.4s ease-in-out 0.45s infinite;
+  }
+
+  .pulse-float-slow {
+    animation: pulse-float 7.2s ease-in-out 0.8s infinite;
+  }
+
+  .pulse-sheen {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pulse-sheen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-120%);
+    background: linear-gradient(
+      100deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.16) 45%,
+      transparent 70%
+    );
+    animation: pulse-sheen 7s ease-in-out infinite;
+  }
+
+  .pulse-sheen > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .pulse-meter {
+    animation: pulse-meter 3.8s ease-in-out infinite;
+    transform-origin: left center;
+  }
+}
+
+@keyframes pulse-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes pulse-breathe {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pulse-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pulse-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -14px, 0);
+  }
+}
+
+@keyframes pulse-sheen {
+  0%,
+  42% {
+    transform: translateX(-120%);
+  }
+  68%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes pulse-meter {
+  0%,
+  100% {
+    transform: scaleX(0.72);
+  }
+  50% {
+    transform: scaleX(0.92);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

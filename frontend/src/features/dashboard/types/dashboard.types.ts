@@ -81,6 +81,7 @@ export interface TriggerPattern {
   };
   triggerCandidates: string[];
   treatmentMemory: string;
+  recommendation?: string;
   updatedAt: string;
 }
 
