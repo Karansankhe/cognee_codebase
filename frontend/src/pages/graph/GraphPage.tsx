@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Send, Loader2, Sparkles, User, Brain, Plus, Mic, Image, PenTool, Globe, Volume2 } from "lucide-react";
+import { Send, Loader2, Sparkles, User, Brain, Plus, Mic, Image, PenTool, Globe, DatabaseZap, Network } from "lucide-react";
 import { AppShell } from "../../components/layout/AppShell";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
 
@@ -27,101 +27,6 @@ export function GraphPage() {
   const [inputValue, setInputValue] = useState("");
   const [isQuerying, setIsQuerying] = useState(false);
 
-  // ElevenLabs STT & TTS Voice States
-  const [isRecording, setIsRecording] = useState(false);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const [playingMessageIdx, setPlayingMessageIdx] = useState<number | null>(null);
-
-  const toggleRecording = async () => {
-    if (isRecording) {
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-        mediaRecorderRef.current.stop();
-      }
-      setIsRecording(false);
-    } else {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const mediaRecorder = new MediaRecorder(stream);
-        mediaRecorderRef.current = mediaRecorder;
-        audioChunksRef.current = [];
-
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0) {
-            audioChunksRef.current.push(event.data);
-          }
-        };
-
-        mediaRecorder.onstop = async () => {
-          const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-          const formData = new FormData();
-          formData.append("file", audioBlob, "audio.webm");
-
-          stream.getTracks().forEach((track) => track.stop());
-
-          setIsQuerying(true);
-          try {
-            const response = await fetch("/api/v1/speech-to-text", {
-              method: "POST",
-              body: formData,
-            });
-            if (!response.ok) throw new Error("STT failed");
-            const result = await response.json();
-            if (result.text) {
-              setInputValue(result.text);
-            }
-          } catch (err) {
-            console.error("Transcription failed", err);
-            alert("Speech transcription failed. Ensure ELEVENLABS_API_KEY is set in backend .env.");
-          } finally {
-            setIsQuerying(false);
-          }
-        };
-
-        mediaRecorder.start();
-        setIsRecording(true);
-      } catch (err) {
-        console.error("Microphone access failed", err);
-        alert("Unable to access microphone. Please check permissions.");
-      }
-    }
-  };
-
-  const handleSpeak = async (text: string, idx: number) => {
-    if (playingMessageIdx === idx) {
-      setPlayingMessageIdx(null);
-      return;
-    }
-
-    setPlayingMessageIdx(idx);
-    try {
-      const response = await fetch("/api/v1/text-to-speech", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
-
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.detail || "TTS generation failed");
-      }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      
-      audio.onended = () => {
-        setPlayingMessageIdx(null);
-      };
-
-      await audio.play();
-    } catch (err: any) {
-      console.error(err);
-      alert(err.message || "Failed to generate speech. Make sure ELEVENLABS_API_KEY is configured in backend.");
-      setPlayingMessageIdx(null);
-    }
-  };
-
   const handleNavigate = (page: string) => {
     if (page === "Dashboard") {
       navigate("/dashboard");
@@ -129,6 +34,8 @@ export function GraphPage() {
       navigate("/graph");
     } else if (page === "Trends") {
       navigate("/trends");
+    } else if (page === "Summary") {
+      navigate("/summary");
     }
   };
 
@@ -141,21 +48,10 @@ export function GraphPage() {
     setIsQuerying(true);
 
     try {
-      const patientInfo = localStorage.getItem("pulse_patient_info");
-      const insights = localStorage.getItem("pulse_insights");
-      const syncedMetrics = localStorage.getItem("pulse_synced_metrics");
-
       const response = await fetch("/api/v1/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question: text,
-          live_context: {
-            patient_info: patientInfo ? JSON.parse(patientInfo) : null,
-            insights: insights ? JSON.parse(insights) : null,
-            synced_metrics: syncedMetrics ? JSON.parse(syncedMetrics) : null,
-          }
-        }),
+        body: JSON.stringify({ question: text }),
       });
 
       if (!response.ok) throw new Error("Query failed");
@@ -192,16 +88,33 @@ export function GraphPage() {
           <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-pulse-muted">
             Knowledge Base
           </p>
-          <h1 className="text-3xl font-semibold tracking-normal">
-            Memory Graph RAG Chat
-          </h1>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="text-3xl font-semibold tracking-normal">
+                Cognee Memory Graph Assistant
+              </h1>
+              <p className="mt-1 text-sm font-medium text-pulse-muted">
+                Ask patient-history questions with recall, graph context, and cited memory.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-pulse-green/50 bg-pulse-green/25 px-3 py-1.5 text-xs font-bold text-pulse-ink shadow-sm">
+                <DatabaseZap className="h-3.5 w-3.5" />
+                Cognee recall
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-bold text-cyan-900 shadow-sm">
+                <Network className="h-3.5 w-3.5" />
+                Graph RAG
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Chat UI Card */}
         <Card className="flex-1 flex flex-col bg-white/70 overflow-hidden min-h-0">
-          <CardHeader 
-            title="Natural Language Query" 
-            eyebrow="Interactive Memory" 
+          <CardHeader
+            title="Natural Language Query"
+            eyebrow="Interactive Memory"
             action={
               <div className="flex items-center gap-1.5 rounded-full bg-pulse-mint/20 px-3 py-1 text-xs font-semibold text-pulse-ink">
                 <Brain className="h-3.5 w-3.5" />
@@ -210,14 +123,14 @@ export function GraphPage() {
             }
           />
           <CardBody className="flex-1 flex flex-col justify-between overflow-hidden p-5 gap-4">
-            
+
             {isLandingState ? (
               /* Gemini style landing view */
               <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full gap-6 select-none">
                 <h2 className="text-3xl font-light text-pulse-ink/90 text-center font-sans tracking-tight">
                   Ready when you are.
                 </h2>
-                
+
                 {/* Search Bar Input Pill */}
                 <form
                   onSubmit={(e) => {
@@ -229,7 +142,7 @@ export function GraphPage() {
                   <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
                     <Plus className="h-5 w-5" />
                   </button>
-                  
+
                   <input
                     type="text"
                     placeholder="Ask anything"
@@ -237,20 +150,11 @@ export function GraphPage() {
                     onChange={(e) => setInputValue(e.target.value)}
                     className="flex-1 bg-transparent text-sm text-pulse-ink outline-none placeholder:text-pulse-muted/80"
                   />
-                  
-                  <button
-                    type="button"
-                    onClick={toggleRecording}
-                    className={`transition cursor-pointer rounded-full p-1.5 ${
-                      isRecording 
-                        ? "bg-red-500 text-white animate-pulse" 
-                        : "text-pulse-muted hover:text-pulse-ink hover:bg-pulse-surface"
-                    }`}
-                    title={isRecording ? "Stop recording" : "Record voice"}
-                  >
+
+                  <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
                     <Mic className="h-5 w-5" />
                   </button>
-                  
+
                   <button
                     type="submit"
                     className="grid h-9 w-9 place-items-center rounded-full bg-black text-white hover:bg-pulse-ink transition shadow-sm cursor-pointer"
@@ -316,42 +220,26 @@ export function GraphPage() {
                   {messages.map((msg, idx) => (
                     <div
                       key={idx}
-                      className={`flex items-start gap-3 max-w-[85%] ${
-                        msg.sender === "user" ? "ml-auto flex-row-reverse" : ""
-                      }`}
+                      className={`flex items-start gap-3 max-w-[85%] ${msg.sender === "user" ? "ml-auto flex-row-reverse" : ""
+                        }`}
                     >
                       <div
-                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-white ${
-                          msg.sender === "user" ? "bg-pulse-ink" : "bg-pulse-muted"
-                        }`}
+                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-white ${msg.sender === "user" ? "bg-pulse-ink" : "bg-pulse-muted"
+                          }`}
                       >
                         {msg.sender === "user" ? <User className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
                       </div>
                       <div
-                        className={`rounded-[20px] px-4 py-2.5 text-sm leading-6 shadow-sm relative group ${
-                          msg.sender === "user"
+                        className={`rounded-[20px] px-4 py-2.5 text-sm leading-6 shadow-sm ${msg.sender === "user"
                             ? "bg-pulse-ink text-white"
                             : "bg-pulse-mint/20 border border-pulse-green/20 text-pulse-ink"
-                        }`}
+                          }`}
                       >
                         <p className="whitespace-pre-wrap">{msg.text}</p>
-                        
-                        {msg.sender === "ai" && (
-                          <button
-                            type="button"
-                            onClick={() => handleSpeak(msg.text, idx)}
-                            className={`absolute -right-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition p-1.5 rounded-full bg-white border border-pulse-line shadow-sm cursor-pointer ${
-                              playingMessageIdx === idx ? "opacity-100 text-pulse-green bg-pulse-green/10 animate-pulse" : "text-pulse-muted hover:text-pulse-ink"
-                            }`}
-                            title="Listen"
-                          >
-                            <Volume2 className="h-3.5 w-3.5" />
-                          </button>
-                        )}
                       </div>
                     </div>
                   ))}
-                  
+
                   {isQuerying && (
                     <div className="flex items-start gap-3 max-w-[85%]">
                       <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-pulse-muted text-white">
@@ -378,7 +266,7 @@ export function GraphPage() {
                     <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
                       <Plus className="h-5 w-5" />
                     </button>
-                    
+
                     <input
                       type="text"
                       placeholder="Ask anything..."
@@ -387,20 +275,11 @@ export function GraphPage() {
                       disabled={isQuerying}
                       className="flex-1 bg-transparent text-sm text-pulse-ink outline-none placeholder:text-pulse-muted"
                     />
-                    
-                    <button
-                      type="button"
-                      onClick={toggleRecording}
-                      className={`transition cursor-pointer rounded-full p-1.5 ${
-                        isRecording 
-                          ? "bg-red-500 text-white animate-pulse" 
-                          : "text-pulse-muted hover:text-pulse-ink hover:bg-pulse-surface"
-                      }`}
-                      title={isRecording ? "Stop recording" : "Record voice"}
-                    >
+
+                    <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
                       <Mic className="h-5 w-5" />
                     </button>
-                    
+
                     <button
                       type="submit"
                       disabled={isQuerying || !inputValue.trim()}

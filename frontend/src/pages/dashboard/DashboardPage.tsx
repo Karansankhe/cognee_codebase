@@ -61,6 +61,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       navigate("/graph");
     } else if (page === "Trends") {
       navigate("/trends");
+    } else if (page === "Summary") {
+      navigate("/summary");
     } else if (onNavigate) {
       onNavigate(page);
     }
@@ -136,21 +138,21 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
   const parsedSections = summaryText
     ? (() => {
-        // Match sections starting with **Header** or a digit-numbered heading (e.g. 1. Header)
-        const pattern = /(?=\n\*\*[^*]+\*\*|\n\d+\.\s+[A-Za-z ]+)/g;
-        // Prepend a newline so the first section aligns with the pattern if needed
-        const segments = ("\n" + summaryText).split(pattern);
-        return segments
-          .map((sec) => {
-            const trimmed = sec.trim();
-            const lines = trimmed.split("\n");
-            const rawTitle = lines[0] || "";
-            const title = rawTitle.replace(/\*\*/g, "").replace(/^\d+\.\s+/, "").trim();
-            const content = lines.slice(1).join("\n").trim();
-            return { title, content };
-          })
-          .filter((s) => s.title && s.content);
-      })()
+      // Match sections starting with **Header** or a digit-numbered heading (e.g. 1. Header)
+      const pattern = /(?=\n\*\*[^*]+\*\*|\n\d+\.\s+[A-Za-z ]+)/g;
+      // Prepend a newline so the first section aligns with the pattern if needed
+      const segments = ("\n" + summaryText).split(pattern);
+      return segments
+        .map((sec) => {
+          const trimmed = sec.trim();
+          const lines = trimmed.split("\n");
+          const rawTitle = lines[0] || "";
+          const title = rawTitle.replace(/\*\*/g, "").replace(/^\d+\.\s+/, "").trim();
+          const content = lines.slice(1).join("\n").trim();
+          return { title, content };
+        })
+        .filter((s) => s.title && s.content);
+    })()
     : [];
 
   if (!data) {
@@ -237,9 +239,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         citations: currentData.citations.map((entry) =>
           entry.id === id
             ? {
-                ...entry,
-                event: "Sensitive note redacted. Relationship metadata retained.",
-              }
+              ...entry,
+              event: "Sensitive note redacted. Relationship metadata retained.",
+            }
             : entry,
         ),
       };
@@ -254,13 +256,13 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       });
       if (!response.ok) throw new Error("Sync failed");
       const result = await response.json();
-      
+
       const pattern = result.pattern;
       const metrics = result.metrics;
-      
+
       // Save raw metrics data to localStorage for TrendsPage
       localStorage.setItem("pulse_synced_metrics", JSON.stringify(metrics));
-      
+
       setData((currentData) => {
         if (!currentData) return currentData;
         return {
@@ -317,6 +319,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <div className="grid min-h-0 content-start gap-4">
             <ConfidencePanel pattern={data.activePattern} />
             <TreatmentEffectivenessPanel pattern={data.activePattern} />
+            <EvaluationHarness evaluation={data.systemEvaluation} />
             <EvidenceList
               citations={data.citations}
               onGenerateSummary={handleGenerateSummary}
