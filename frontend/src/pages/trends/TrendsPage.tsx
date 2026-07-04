@@ -4,6 +4,7 @@ import { Activity, Brain, RefreshCw, AlertCircle, Info, Flame, Navigation, Zap }
 import { apiUrl } from "../../lib/api";
 import { AppShell } from "../../components/layout/AppShell";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
+import { apiUrl } from "../../lib/api";
 
 interface MetricRow {
   HeartRate: number;

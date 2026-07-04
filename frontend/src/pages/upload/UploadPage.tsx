@@ -4,6 +4,7 @@ import { UploadCloud, FileText, Loader2, CheckCircle, AlertCircle, Brain, ArrowR
 import { apiUrl } from "../../lib/api";
 import { Link, useNavigate } from "react-router-dom";
 import { UploadCloud, FileText, Loader2, CheckCircle, AlertCircle, ArrowRight, ArrowLeft } from "lucide-react";
+import { apiUrl } from "../../lib/api";
 import pulseLogo from "../../assets/pulse-logo.png";
 
 interface QuizQuestion {

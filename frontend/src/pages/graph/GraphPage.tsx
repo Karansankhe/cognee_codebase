@@ -4,6 +4,7 @@ import { Send, Loader2, Sparkles, User, Brain, Plus, Mic, MicOff, Volume2, Image
 import { apiUrl } from "../../lib/api";
 import { AppShell } from "../../components/layout/AppShell";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
+import { apiUrl } from "../../lib/api";
 
 interface Message {
   sender: "user" | "ai";
