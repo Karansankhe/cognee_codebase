@@ -190,7 +190,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     const time = symptomForm.time.trim() || "Today, " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
     // Call backend API in background
-    void fetch("/api/v1/log-symptom", {
+    void fetch(apiUrl("/api/v1/log-symptom"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -237,7 +237,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     const time = "Today, " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
     // Call backend API in background
-    void fetch("/api/v1/log-outcome", {
+    void fetch(apiUrl("/api/v1/log-outcome"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

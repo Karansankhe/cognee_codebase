@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Activity, Brain, RefreshCw, AlertCircle, Info, Flame, Navigation, Zap } from "lucide-react";
+import { apiUrl } from "../../lib/api";
 import { AppShell } from "../../components/layout/AppShell";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
 
@@ -49,7 +50,7 @@ export function TrendsPage() {
   const handleSync = async () => {
     setIsSyncing(true);
     try {
-      const response = await fetch("/api/v1/wearable/sync", {
+      const response = await fetch(apiUrl("/api/v1/wearable/sync"), {
         method: "POST",
       });
       if (!response.ok) throw new Error("Sync failed");

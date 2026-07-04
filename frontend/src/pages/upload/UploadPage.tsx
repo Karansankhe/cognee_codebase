@@ -90,7 +90,7 @@ export function UploadPage() {
     setIsResetting(true);
     setError(null);
     try {
-      const response = await fetch("/api/v1/reset-dataset", {
+      const response = await fetch(apiUrl("/api/v1/reset-dataset"), {
         method: "POST",
       });
       if (!response.ok) {

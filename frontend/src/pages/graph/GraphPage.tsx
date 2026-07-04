@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Send, Loader2, Sparkles, User, Brain, Plus, Mic, MicOff, Volume2, Image, PenTool, Globe, DatabaseZap, Network } from "lucide-react";
+import { apiUrl } from "../../lib/api";
 import { AppShell } from "../../components/layout/AppShell";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
 
@@ -82,7 +83,7 @@ export function GraphPage() {
     setIsQuerying(true);
 
     try {
-      const response = await fetch("/api/v1/query", {
+      const response = await fetch(apiUrl("/api/v1/query"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: text }),
@@ -103,7 +104,7 @@ export function GraphPage() {
       if (shouldPlayAudio && answer) {
         setIsPlayingAudio(true);
         try {
-          const ttsResponse = await fetch("/api/v1/text-to-speech", {
+          const ttsResponse = await fetch(apiUrl("/api/v1/text-to-speech"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ text: answer }),
@@ -164,7 +165,7 @@ export function GraphPage() {
             const formData = new FormData();
             formData.append("file", audioBlob, "voice_input.webm");
 
-            const sttResponse = await fetch("/api/v1/speech-to-text", {
+            const sttResponse = await fetch(apiUrl("/api/v1/speech-to-text"), {
               method: "POST",
               body: formData,
             });
