@@ -14,10 +14,12 @@ export function DashboardHeader({}: DashboardHeaderProps) {
           <Badge tone="green">Wearable intelligence</Badge>
           <Badge tone="neutral">Consent driven</Badge>
         </div>
-        <h1 className="text-3xl font-semibold tracking-normal">
+        <h1 className="text-3xl font-normal tracking-normal">
           Pulse Health Dashboard
         </h1>
       </div>
     </header>
   );
 }
+
+

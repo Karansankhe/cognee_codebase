@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 import { RotateCcw } from "lucide-react";
+import { apiUrl } from "../../../lib/api";
 
 type NodeKind =
   | "Symptom"
@@ -180,7 +181,7 @@ export function LiveGraphPanel() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/v1/graph");
+      const response = await fetch(apiUrl("/api/v1/graph"));
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data: GraphData = await response.json();
       setGraphData(data);
@@ -350,7 +351,7 @@ export function LiveGraphPanel() {
     <section className="overflow-hidden rounded-[20px] border border-[#dedbd2] bg-[#fbfaf6] shadow-[0_22px_70px_rgba(34,32,26,0.08)]">
       <header className="flex items-start justify-between gap-4 border-b border-[#e4e0d6] bg-[#fffdfa] px-5 py-4">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.36em] text-slate-500">
+          <p className="text-[10px] font-normal uppercase tracking-[0.36em] text-slate-500">
             Live Neo4j graph
           </p>
           <h2 className="mt-1 font-serif text-3xl font-normal leading-none text-slate-950">
@@ -358,7 +359,7 @@ export function LiveGraphPanel() {
           </h2>
         </div>
         <div className="flex items-center gap-2">
-          <span className="rounded-full border border-[#d8d2c3] bg-[#eee9dc] px-3 py-1 text-[11px] font-medium text-slate-800 shadow-sm">
+          <span className="rounded-full border border-[#d8d2c3] bg-[#eee9dc] px-3 py-1 text-[11px] font-normal text-slate-800 shadow-sm">
             {displayData.nodes.length} nodes / {displayData.links.length} edges
           </span>
           <button
@@ -375,7 +376,7 @@ export function LiveGraphPanel() {
       <div className="grid grid-cols-2 gap-2 border-b border-[#e4e0d6] bg-[#fffdfa] px-5 py-3 sm:grid-cols-3 xl:grid-cols-5">
         {KIND_LABELS.map((kind) => (
           <button
-            className="inline-flex min-w-0 items-center gap-2 rounded-full border border-[#e4e0d6]/70 bg-white/70 px-3 py-1.5 text-left text-[11px] font-medium text-slate-600 shadow-sm transition hover:border-[#d8d2c3] hover:bg-white hover:text-slate-950"
+            className="inline-flex min-w-0 items-center gap-2 rounded-full border border-[#e4e0d6]/70 bg-white/70 px-3 py-1.5 text-left text-[11px] font-normal text-slate-600 shadow-sm transition hover:border-[#d8d2c3] hover:bg-white hover:text-slate-950"
             key={kind}
             onClick={() => {
               const firstNode = displayData.nodes.find(
@@ -450,21 +451,21 @@ export function LiveGraphPanel() {
 
         {selectedNode ? (
           <div className="absolute bottom-4 right-4 z-10 w-56 rounded-[18px] border border-[#dedbd2] bg-white/92 p-4 text-slate-950 shadow-[0_18px_55px_rgba(34,32,26,0.16)] backdrop-blur">
-            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            <div className="flex items-center gap-2 text-[11px] font-normal uppercase tracking-[0.16em] text-slate-500">
               <span
                 className="h-2.5 w-2.5 rounded-full"
                 style={{ backgroundColor: nodeColor(selectedNode) }}
               />
               {normalizeKind(String(selectedNode.label))}
             </div>
-            <p className="mt-2 text-base font-semibold text-slate-950">
+            <p className="mt-2 text-base font-normal text-slate-950">
               {nodeName(selectedNode)}
             </p>
             <p className="mt-1 text-xs text-slate-500">
               {connectionCount(selectedNode.id, displayData.links)} connections
             </p>
             <button
-              className="mt-3 rounded-full border border-[#dedbd2] px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-[#f6f2e9] hover:text-slate-950"
+              className="mt-3 rounded-full border border-[#dedbd2] px-3 py-1 text-xs font-normal text-slate-600 transition hover:bg-[#f6f2e9] hover:text-slate-950"
               onClick={() => setSelectedNode(null)}
               type="button"
             >
@@ -474,7 +475,7 @@ export function LiveGraphPanel() {
         ) : null}
 
         {isFallback ? (
-          <div className="absolute left-4 top-4 z-10 rounded-full border border-[#dedbd2] bg-white/88 px-3 py-1 text-[11px] font-medium text-slate-500 shadow-sm">
+          <div className="absolute left-4 top-4 z-10 rounded-full border border-[#dedbd2] bg-white/88 px-3 py-1 text-[11px] font-normal text-slate-500 shadow-sm">
             {error ? "Showing reference graph until Cognee responds" : "Reference graph preview"}
           </div>
         ) : null}
@@ -493,3 +494,5 @@ export function LiveGraphPanel() {
     </section>
   );
 }
+
+

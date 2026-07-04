@@ -1,4 +1,7 @@
 import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { UploadCloud, FileText, Loader2, CheckCircle, AlertCircle, Brain, ArrowRight, ArrowLeft } from "lucide-react";
+import { apiUrl } from "../../lib/api";
 import { Link, useNavigate } from "react-router-dom";
 import { UploadCloud, FileText, Loader2, CheckCircle, AlertCircle, ArrowRight, ArrowLeft } from "lucide-react";
 import pulseLogo from "../../assets/pulse-logo.png";
@@ -133,7 +136,7 @@ export function UploadPage() {
     }));
 
     try {
-      const response = await fetch("/api/v1/onboarding/remember", {
+      const response = await fetch(apiUrl("/api/v1/onboarding/remember"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers: formattedAnswers })
@@ -209,7 +212,7 @@ export function UploadPage() {
 
     try {
       // 1. Upload the PDF
-      const response = await fetch("/api/v1/upload", {
+      const response = await fetch(apiUrl("/api/v1/upload"), {
         method: "POST",
         body: formData,
       });
@@ -220,7 +223,7 @@ export function UploadPage() {
 
       // 2. Generate insights based on habits
       if (location) {
-        const insightsResponse = await fetch("/api/v1/insights", {
+        const insightsResponse = await fetch(apiUrl("/api/v1/insights"), {
           method: "POST",
           body: insightsFormData,
         });
@@ -273,8 +276,8 @@ export function UploadPage() {
                 />
               </Link>
               <div>
-                <p className="text-xl font-bold tracking-tight">Pulse Onboarding</p>
-                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-pulse-muted">
+                <p className="text-xl font-normal tracking-tight">Pulse Onboarding</p>
+                <p className="text-[10px] font-normal uppercase tracking-[0.14em] text-pulse-muted">
                   Personal Health memory Baseline
                 </p>
               </div>
@@ -282,7 +285,7 @@ export function UploadPage() {
 
             {/* Quiz Card */}
             <div className="rounded-[24px] border border-pulse-line bg-white/60 p-6 shadow-pulse backdrop-blur-sm">
-              <div className="flex items-center justify-between text-xs font-semibold text-pulse-muted mb-2">
+              <div className="flex items-center justify-between text-xs font-normal text-pulse-muted mb-2">
                 <span>ONBOARDING PROFILE</span>
                 <span>Question {currentQuizIdx + 1} of {quizQuestions.length}</span>
               </div>
@@ -296,7 +299,7 @@ export function UploadPage() {
               </div>
 
               {/* Question Text */}
-              <h2 className="text-lg font-bold text-pulse-ink mb-5 min-h-[50px] leading-snug">
+              <h2 className="text-lg font-normal text-pulse-ink mb-5 min-h-[50px] leading-snug">
                 {quizQuestions[currentQuizIdx].question}
               </h2>
 
@@ -307,7 +310,7 @@ export function UploadPage() {
                     key={opt}
                     onClick={() => handleSelectQuizOption(opt)}
                     className={[
-                      "w-full rounded-xl border p-3.5 text-left text-sm font-medium transition cursor-pointer shadow-sm",
+                      "w-full rounded-xl border p-3.5 text-left text-sm font-normal transition cursor-pointer shadow-sm",
                       selectedAnswer === opt
                         ? "border-pulse-ink bg-pulse-mint/20 text-pulse-ink"
                         : "border-pulse-line bg-white/40 text-pulse-ink hover:border-pulse-ink/30 hover:bg-white/60"
@@ -331,7 +334,7 @@ export function UploadPage() {
                 <button
                   onClick={() => currentQuizIdx > 0 && setCurrentQuizIdx(currentQuizIdx - 1)}
                   disabled={currentQuizIdx === 0}
-                  className="flex items-center gap-1 text-xs font-semibold text-pulse-muted hover:text-pulse-ink disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex items-center gap-1 text-xs font-normal text-pulse-muted hover:text-pulse-ink disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   Back
@@ -341,7 +344,7 @@ export function UploadPage() {
                   <button
                     onClick={() => quizAnswers[currentQuizIdx] && setCurrentQuizIdx(currentQuizIdx + 1)}
                     disabled={!quizAnswers[currentQuizIdx]}
-                    className="flex items-center gap-1 text-xs font-semibold text-pulse-ink hover:text-pulse-ink/80 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                    className="flex items-center gap-1 text-xs font-normal text-pulse-ink hover:text-pulse-ink/80 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                   >
                     Next
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -350,7 +353,7 @@ export function UploadPage() {
                   <button
                     onClick={handleQuizSubmit}
                     disabled={isSavingQuiz || quizAnswers.some(a => !a)}
-                    className="flex items-center gap-1.5 rounded-full bg-pulse-ink text-white px-4 py-2 text-xs font-bold hover:bg-pulse-ink/80 disabled:opacity-30 cursor-pointer shadow-pulse"
+                    className="flex items-center gap-1.5 rounded-full bg-pulse-ink text-white px-4 py-2 text-xs font-normal hover:bg-pulse-ink/80 disabled:opacity-30 cursor-pointer shadow-pulse"
                   >
                     {isSavingQuiz ? (
                       <>
@@ -381,8 +384,8 @@ export function UploadPage() {
                 />
               </Link>
               <div>
-                <p className="text-xl font-bold tracking-tight">Onboarding complete</p>
-                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-pulse-muted">
+                <p className="text-xl font-normal tracking-tight">Onboarding complete</p>
+                <p className="text-[10px] font-normal uppercase tracking-[0.14em] text-pulse-muted">
                   Personal Memory setup &middot; Document Upload
                 </p>
               </div>
@@ -402,10 +405,10 @@ export function UploadPage() {
               {/* Left Column: Patient Details */}
               <div className="rounded-[24px] border border-pulse-line bg-white/60 p-6 shadow-pulse backdrop-blur-sm space-y-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-pulse-muted mb-1">
+                  <p className="text-xs font-normal uppercase tracking-[0.12em] text-pulse-muted mb-1">
                     Step 2A
                   </p>
-                  <h2 className="text-lg font-bold text-pulse-ink">
+                  <h2 className="text-lg font-normal text-pulse-ink">
                     Patient Profile
                   </h2>
                   <p className="text-xs text-pulse-muted">
@@ -415,7 +418,7 @@ export function UploadPage() {
 
                 <div className="space-y-3.5">
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-pulse-muted block mb-1">Patient Name</label>
+                    <label className="text-[10px] font-normal uppercase tracking-wider text-pulse-muted block mb-1">Patient Name</label>
                     <input
                       type="text"
                       placeholder="e.g. John Anderson"
@@ -427,7 +430,7 @@ export function UploadPage() {
 
                   <div className="grid grid-cols-2 gap-3.5">
                     <div>
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-pulse-muted block mb-1">Age</label>
+                      <label className="text-[10px] font-normal uppercase tracking-wider text-pulse-muted block mb-1">Age</label>
                       <input
                         type="number"
                         placeholder="e.g. 45"
@@ -437,7 +440,7 @@ export function UploadPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-pulse-muted block mb-1">Gender</label>
+                      <label className="text-[10px] font-normal uppercase tracking-wider text-pulse-muted block mb-1">Gender</label>
                       <select
                         value={patientGender}
                         onChange={(e) => setPatientGender(e.target.value)}
@@ -452,7 +455,7 @@ export function UploadPage() {
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-pulse-muted block mb-1">Current Medications</label>
+                    <label className="text-[10px] font-normal uppercase tracking-wider text-pulse-muted block mb-1">Current Medications</label>
                     <input
                       type="text"
                       placeholder="Amlodipine, Metformin..."
@@ -467,10 +470,10 @@ export function UploadPage() {
               {/* Right Column: Daily Habits & PDF Drag and Drop */}
               <div className="rounded-[24px] border border-pulse-line bg-white/60 p-6 shadow-pulse backdrop-blur-sm space-y-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-pulse-muted mb-1">
+                  <p className="text-xs font-normal uppercase tracking-[0.12em] text-pulse-muted mb-1">
                     Step 2B
                   </p>
-                  <h2 className="text-lg font-bold text-pulse-ink">
+                  <h2 className="text-lg font-normal text-pulse-ink">
                     Wearable Files &amp; Habits
                   </h2>
                   <p className="text-xs text-pulse-muted">
@@ -481,7 +484,7 @@ export function UploadPage() {
                 {/* Habits Form Inputs */}
                 <div className="grid grid-cols-2 gap-3.5">
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-pulse-muted block mb-1">Location</label>
+                    <label className="text-[10px] font-normal uppercase tracking-wider text-pulse-muted block mb-1">Location</label>
                     <input
                       type="text"
                       placeholder="e.g. Seattle, WA"
@@ -491,7 +494,7 @@ export function UploadPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-pulse-muted block mb-1">Water Intake</label>
+                    <label className="text-[10px] font-normal uppercase tracking-wider text-pulse-muted block mb-1">Water Intake</label>
                     <input
                       type="text"
                       placeholder="e.g. 2 Liters"
@@ -501,7 +504,7 @@ export function UploadPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-pulse-muted block mb-1">Avg Sleep</label>
+                    <label className="text-[10px] font-normal uppercase tracking-wider text-pulse-muted block mb-1">Avg Sleep</label>
                     <input
                       type="text"
                       placeholder="e.g. 6 hours"
@@ -511,7 +514,7 @@ export function UploadPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-pulse-muted block mb-1">Daily Habits</label>
+                    <label className="text-[10px] font-normal uppercase tracking-wider text-pulse-muted block mb-1">Daily Habits</label>
                     <input
                       type="text"
                       placeholder="drinking coffee..."
@@ -550,7 +553,7 @@ export function UploadPage() {
                       <div className="mb-2 grid h-10 w-10 place-items-center rounded-full bg-pulse-green shadow-pulse">
                         <FileText className="h-4.5 w-4.5 text-pulse-ink" />
                       </div>
-                      <p className="max-w-[200px] truncate text-xs font-semibold text-pulse-ink">
+                      <p className="max-w-[200px] truncate text-xs font-normal text-pulse-ink">
                         {file.name}
                       </p>
                       <p className="mt-0.5 text-[10px] text-pulse-muted">
@@ -562,7 +565,7 @@ export function UploadPage() {
                       <div className="mb-2 grid h-10 w-10 place-items-center rounded-full bg-pulse-surface">
                         <UploadCloud className="h-4.5 w-4.5 text-pulse-muted" />
                       </div>
-                      <p className="text-xs font-semibold text-pulse-ink">
+                      <p className="text-xs font-normal text-pulse-ink">
                         {isDragging ? "Drop it here" : "Click or drag & drop"}
                       </p>
                       <p className="mt-0.5 text-[10px] text-pulse-muted">PDF files only</p>
@@ -576,7 +579,7 @@ export function UploadPage() {
                   onClick={handleUpload}
                   disabled={!file || isUploading}
                   className={[
-                    "flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold transition-all duration-200 cursor-pointer shadow-pulse",
+                    "flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-normal transition-all duration-200 cursor-pointer shadow-pulse",
                     !file
                       ? "bg-pulse-surface text-pulse-muted cursor-not-allowed"
                       : isUploading
@@ -624,3 +627,5 @@ export function UploadPage() {
     </div>
   );
 }
+
+
