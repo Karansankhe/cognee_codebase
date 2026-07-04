@@ -18,11 +18,11 @@ export function WearableSummaryPanel({ summary }: WearableSummaryPanelProps) {
         <div className="grid grid-cols-2 gap-2">
           {summary.metrics.map((metric) => (
             <div className="rounded-[18px] bg-pulse-mint p-3" key={metric.id}>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-pulse-muted">
+              <p className="text-[10px] font-normal uppercase tracking-[0.14em] text-pulse-muted">
                 {metric.label}
               </p>
-              <p className="mt-1 text-xl font-semibold">{metric.value}</p>
-              <p className="mt-1 text-xs font-medium text-pulse-muted">
+              <p className="mt-1 text-xl font-normal">{metric.value}</p>
+              <p className="mt-1 text-xs font-normal text-pulse-muted">
                 {metric.status}
               </p>
             </div>
@@ -30,7 +30,7 @@ export function WearableSummaryPanel({ summary }: WearableSummaryPanelProps) {
         </div>
 
         <div className="rounded-[18px] bg-white/90 p-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-pulse-muted">
+          <p className="text-xs font-normal uppercase tracking-[0.14em] text-pulse-muted">
             Shared health data
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
@@ -45,3 +45,5 @@ export function WearableSummaryPanel({ summary }: WearableSummaryPanelProps) {
     </Card>
   );
 }
+
+

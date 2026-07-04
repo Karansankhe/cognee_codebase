@@ -60,7 +60,7 @@ export function QuickActions({ onAddOutcome, onLogSymptom }: QuickActionsProps) 
               onClick={() => handleAction(action.id)}
               type="button"
             >
-              <span className="block text-sm font-semibold leading-5">{action.label}</span>
+              <span className="block text-sm font-normal leading-5">{action.label}</span>
               <span
                 className={`mt-1 block line-clamp-2 text-xs leading-4 ${
                   action.primary ? "text-white/80" : "text-pulse-muted"
@@ -75,3 +75,5 @@ export function QuickActions({ onAddOutcome, onLogSymptom }: QuickActionsProps) 
     </Card>
   );
 }
+
+
