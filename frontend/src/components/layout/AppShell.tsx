@@ -13,7 +13,6 @@ const navItems = [
   "Graph",
   "Trends",
   "Summary",
-  "Data controls",
 ];
 
 export function AppShell({
