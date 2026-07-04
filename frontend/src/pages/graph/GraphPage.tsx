@@ -16,6 +16,37 @@ const suggestions = [
   "Are my medications effective?",
 ];
 
+const renderMessageText = (text: string) => {
+  if (!text) return null;
+  const lines = text.split("\n");
+  return lines.map((line, lineIdx) => {
+    const isBullet = line.trim().startsWith("-") || line.trim().startsWith("*");
+    let lineContent = line;
+    if (isBullet) {
+      lineContent = line.replace(/^\s*[-*]\s*/, "");
+    }
+    const parts = lineContent.split(/(\*\*.*?\*\*)/g);
+    const elements = parts.map((part, partIdx) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={partIdx} className="font-bold text-pulse-ink">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+    if (isBullet) {
+      return (
+        <ul key={lineIdx} className="list-disc pl-5 my-1">
+          <li className="text-pulse-ink">{elements}</li>
+        </ul>
+      );
+    }
+    return (
+      <p key={lineIdx} className="min-h-[1.5em] my-1 text-pulse-ink">
+        {elements}
+      </p>
+    );
+  });
+};
+
 export function GraphPage() {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
@@ -267,33 +298,7 @@ export function GraphPage() {
                   </button>
                 </form>
 
-                {/* Gemini style horizontal action chips */}
-                <div className="flex flex-wrap items-center justify-center gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => handleSend("Generate a visual health timeline representation from my symptom history")}
-                    className="flex items-center gap-2 rounded-full border border-pulse-line bg-white px-4 py-2 text-xs font-semibold text-pulse-muted/80 transition hover:bg-pulse-mint/20 hover:border-pulse-green shadow-sm cursor-pointer"
-                  >
-                    <Image className="h-3.5 w-3.5 text-pulse-ink" />
-                    Create an image
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSend("Draft a concise patient diary log summary")}
-                    className="flex items-center gap-2 rounded-full border border-pulse-line bg-white px-4 py-2 text-xs font-semibold text-pulse-muted/80 transition hover:bg-pulse-mint/20 hover:border-pulse-green shadow-sm cursor-pointer"
-                  >
-                    <PenTool className="h-3.5 w-3.5 text-pulse-ink" />
-                    Write or edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSend("Identify other recorded correlation triggers in clinical data")}
-                    className="flex items-center gap-2 rounded-full border border-pulse-line bg-white px-4 py-2 text-xs font-semibold text-pulse-muted/80 transition hover:bg-pulse-mint/20 hover:border-pulse-green shadow-sm cursor-pointer"
-                  >
-                    <Globe className="h-3.5 w-3.5 text-pulse-ink" />
-                    Look something up
-                  </button>
-                </div>
+                {/* Action chips removed */}
 
                 {/* Suggestion Queries */}
                 <div className="w-full mt-5 max-w-xl">
@@ -337,7 +342,7 @@ export function GraphPage() {
                             : "bg-pulse-mint/20 border border-pulse-green/20 text-pulse-ink"
                           }`}
                       >
-                        <p className="whitespace-pre-wrap">{msg.text}</p>
+                        {renderMessageText(msg.text)}
                       </div>
                     </div>
                   ))}

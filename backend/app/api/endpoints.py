@@ -110,6 +110,16 @@ async def upload_file(file: UploadFile = File(...)):
                 pass
 
 
+@router.post("/reset-dataset")
+async def reset_dataset_endpoint():
+    try:
+        result = await graph_service.reset_dataset()
+        return result
+    except Exception as e:
+        logger.error(f"[RESET] Error resetting dataset: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 class OnboardingQuizAnswers(BaseModel):
     answers: list
 

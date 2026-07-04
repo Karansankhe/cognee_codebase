@@ -76,8 +76,40 @@ export function UploadPage() {
   const [patientAge, setPatientAge] = useState("");
   const [patientGender, setPatientGender] = useState("");
   const [patientMedications, setPatientMedications] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleReset = async () => {
+    if (!window.confirm("Are you sure you want to delete the entire patient knowledge graph dataset from Cognee Cloud? This cannot be undone.")) {
+      return;
+    }
+    setIsResetting(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/v1/reset-dataset", {
+        method: "POST",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to delete dataset from Cognee Cloud");
+      }
+      alert("Cognee memory dataset successfully deleted and reset!");
+      setFile(null);
+      setLocation("");
+      setWaterIntake("");
+      setSleepAmount("");
+      setOtherHabits("");
+      setPatientName("");
+      setPatientAge("");
+      setPatientGender("");
+      setPatientMedications("");
+      localStorage.clear();
+    } catch (err: any) {
+      setError(err.message || "Failed to reset dataset.");
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   const handleSelectQuizOption = (option: string) => {
     const updated = [...quizAnswers];
@@ -564,6 +596,22 @@ export function UploadPage() {
                     </>
                   ) : (
                     "Select a document to continue"
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  disabled={isResetting}
+                  className="flex w-full items-center justify-center gap-2 rounded-full border border-red-200 bg-red-50/20 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50/60 transition duration-250 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                >
+                  {isResetting ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Resetting memory...
+                    </>
+                  ) : (
+                    "Reset / Clear Existing Cognee Memory Graph"
                   )}
                 </button>
               </div>

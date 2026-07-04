@@ -220,216 +220,275 @@ export function TrendsPage() {
             </div>
           )}
 
-          <div className={`grid grid-cols-1 gap-4 xl:grid-cols-3 ${!hasData ? "opacity-30 blur-[1px]" : ""}`}>
-            <Card className="pulse-rise-delay overflow-hidden bg-white/88 xl:col-span-2">
-              <CardHeader title="Heart Rate Over Time" eyebrow="Wearable Frequency" />
-              <CardBody className="p-5">
-                <div className="relative h-52 overflow-hidden rounded-[24px] border border-pulse-line/70 bg-gradient-to-b from-pulse-mint/45 via-white to-white px-1 pt-4 shadow-inner">
-                  <div className="absolute left-6 top-5 rounded-full bg-white/80 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-pulse-muted shadow-sm">
-                    live pulse stream
-                  </div>
-                  <div className="absolute inset-x-0 top-1/2 h-px bg-pulse-line/60" />
-                  <div className="absolute inset-x-0 bottom-12 h-px bg-pulse-line/40" />
-                  {hasData ? (
-                    <svg className="relative h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                      <defs>
-                        <linearGradient id="gradient-hr" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#d8fb64" stopOpacity="0.4" />
-                          <stop offset="100%" stopColor="#d8fb64" stopOpacity="0.0" />
-                        </linearGradient>
-                      </defs>
-                      {/* Area Path */}
-                      <path
-                        d={`M 0 100 L ${hrPoints} L 100 100 Z`}
-                        fill="url(#gradient-hr)"
-                        className="animate-pulse"
-                      />
-                      {/* Line Path */}
-                      <polyline
-                        fill="none"
-                        stroke="#12353c"
-                        strokeWidth="2.25"
-                        strokeLinejoin="round"
-                        strokeLinecap="round"
-                        points={hrPoints}
-                        className="drop-shadow-[0_8px_12px_rgba(18,53,60,0.18)]"
-                      />
-                    </svg>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-xs text-pulse-muted">
-                      Line chart area placeholder
-                    </div>
-                  )}
+          <div className={`grid grid-cols-1 gap-5 lg:grid-cols-3 ${!hasData ? "opacity-30 blur-[1px]" : ""}`}>
+            {/* LEFT CARD: Overview of latest Month */}
+            <div className="lg:col-span-2 bg-white rounded-[24px] border border-pulse-line p-6 shadow-sm flex flex-col justify-between min-h-[420px]">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-sm font-bold text-pulse-muted uppercase tracking-wider">Dashboard</h3>
+                  <p className="text-xs text-pulse-muted">Overview of latest Month</p>
                 </div>
-                <div className="mt-3 flex justify-between text-[10px] font-bold uppercase tracking-wider text-pulse-muted">
-                  <span>Log Start</span>
-                  <span>Average: {hasData ? Math.round(metrics!.reduce((acc, m) => acc + m.HeartRate, 0) / metrics!.length) : 0} BPM</span>
-                  <span>Latest Log</span>
+                <div className="flex gap-3 text-xs font-bold text-pulse-muted">
+                  <span className="cursor-pointer hover:text-pulse-ink">DAILY</span>
+                  <span className="cursor-pointer hover:text-pulse-ink">WEEKLY</span>
+                  <span className="cursor-pointer hover:text-pulse-ink text-pulse-ink border-b-2 border-pulse-ink">MONTHLY</span>
+                  <span className="cursor-pointer hover:text-pulse-ink">YEARLY</span>
                 </div>
-              </CardBody>
-            </Card>
+              </div>
+              
+              <div className="flex items-center gap-8 my-4">
+                <div>
+                  <span className="text-3xl font-black tracking-tight text-pulse-ink">{avgCalories ? `${avgCalories.toLocaleString()} kcal` : "6,468 kcal"}</span>
+                  <p className="text-[10px] uppercase font-bold text-pulse-muted tracking-wider mt-0.5">Average Energy Burned</p>
+                </div>
+                <div>
+                  <span className="text-3xl font-black tracking-tight text-pulse-ink">{avgSteps ? `${avgSteps.toLocaleString()}` : "8,200"}</span>
+                  <p className="text-[10px] uppercase font-bold text-pulse-muted tracking-wider mt-0.5">Average Steps Logged</p>
+                </div>
+                <button className="ml-auto rounded-full bg-purple-600 text-white text-xs font-bold px-4 py-2 hover:bg-purple-700 transition shadow-sm">
+                  Last Month Summary
+                </button>
+              </div>
 
-            <Card className="pulse-rise-delay bg-[#fff6cc]/95">
-              <CardHeader title="Stress Levels breakdown" eyebrow="Symptom Indicator" />
-              <CardBody className="flex h-[258px] flex-col justify-end p-5">
-                <div className="grid flex-1 grid-cols-3 items-end gap-3 rounded-[22px] bg-white/40 p-4">
-                  <div className="flex flex-col items-center">
-                    <span className="mb-1 text-xs font-black text-pulse-ink">{hasData ? stressLow : 0}</span>
-                    <div
-                      className="w-full rounded-t-xl bg-pulse-green shadow-[0_12px_30px_rgba(216,251,100,0.35)] transition-all duration-700"
-                      style={{ height: hasData ? `${Math.max((stressLow / metrics!.length) * 150, 24)}px` : "24px" }}
+              {/* Gorgeous Double Area Chart */}
+              <div className="relative h-44 w-full my-2 bg-slate-50/50 rounded-xl overflow-hidden px-1">
+                <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="purple-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.4" />
+                      <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0" />
+                    </linearGradient>
+                    <linearGradient id="orange-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#f97316" stopOpacity="0.4" />
+                      <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  {/* Grid lines */}
+                  <line x1="0" y1="10" x2="100" y2="10" stroke="#f1f5f9" strokeWidth="0.5" />
+                  <line x1="0" y1="20" x2="100" y2="20" stroke="#f1f5f9" strokeWidth="0.5" />
+                  <line x1="0" y1="30" x2="100" y2="30" stroke="#f1f5f9" strokeWidth="0.5" />
+                  
+                  {/* Purple Area Chart (Heart Rate/Energy) */}
+                  <path d="M 0 40 C 20 20, 40 30, 60 12 C 80 25, 90 10, 100 35 L 100 40 Z" fill="url(#purple-grad)" />
+                  <path d="M 0 40 C 20 20, 40 30, 60 12 C 80 25, 90 10, 100 35 L 100 40 Z" fill="none" stroke="#8b5cf6" strokeWidth="1.5" strokeLinecap="round" />
+                  
+                  {/* Orange Area Chart (Steps/Activity) */}
+                  <path d="M 0 40 C 25 30, 50 18, 70 30 C 85 24, 95 12, 100 28 L 100 40 Z" fill="url(#orange-grad)" />
+                  <path d="M 0 40 C 25 30, 50 18, 70 30 C 85 24, 95 12, 100 28 L 100 40 Z" fill="none" stroke="#f97316" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+                <div className="absolute bottom-1 left-0 right-0 flex justify-between text-[8px] font-black uppercase text-pulse-muted px-2">
+                  <span>Jan</span>
+                  <span>Feb</span>
+                  <span>Mar</span>
+                  <span>Apr</span>
+                  <span>May</span>
+                </div>
+              </div>
+
+              {/* Bottom stats row */}
+              <div className="grid grid-cols-4 gap-2 pt-4 border-t border-slate-100 text-center">
+                <div>
+                  <p className="text-[9px] font-black uppercase text-pulse-muted">Avg Heart Rate</p>
+                  <p className="text-sm font-black text-pulse-ink mt-0.5">{hasData ? `${Math.round(metrics!.reduce((acc, m) => acc + m.HeartRate, 0) / metrics!.length)} BPM` : "72 BPM"}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-black uppercase text-pulse-muted">Sleep Quality</p>
+                  <p className="text-sm font-black text-pulse-ink mt-0.5">{avgSleepScore ? `${avgSleepScore}%` : "82%"}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-black uppercase text-pulse-muted">SpO2 Level</p>
+                  <p className="text-sm font-black text-pulse-ink mt-0.5">{avgSpO2 ? `${avgSpO2}%` : "98%"}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-black uppercase text-pulse-muted">Avg Active Zone</p>
+                  <p className="text-sm font-black text-pulse-ink mt-0.5">{avgActiveMins ? `${avgActiveMins} min` : "32 min"}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT CARD: Traffic / Distribution */}
+            <div className="bg-white rounded-[24px] border border-pulse-line p-6 shadow-sm flex flex-col justify-between min-h-[420px]">
+              <div>
+                <h3 className="text-sm font-bold text-pulse-muted uppercase tracking-wider">Health Distribution</h3>
+                <p className="text-xs text-pulse-muted">Daily Time Breakdown</p>
+              </div>
+
+              {/* concentric ring donut chart */}
+              <div className="relative flex items-center justify-center my-6 h-40">
+                <svg className="w-36 h-36 transform -rotate-90" viewBox="0 0 36 36">
+                  {/* Outer circle - Sleep (55%) */}
+                  <circle cx="18" cy="18" r="15.915" fill="none" stroke="#f1f5f9" strokeWidth="2.5" />
+                  <circle cx="18" cy="18" r="15.915" fill="none" stroke="#f43f5e" strokeWidth="2.5" strokeDasharray="55 100" strokeDashoffset="0" strokeLinecap="round" />
+                  
+                  {/* Middle circle - Light Activity (33%) */}
+                  <circle cx="18" cy="18" r="12" fill="none" stroke="#f1f5f9" strokeWidth="2.5" />
+                  <circle cx="18" cy="18" r="12" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeDasharray="33 100" strokeDashoffset="-10" strokeLinecap="round" />
+                  
+                  {/* Inner circle - Active Zone (12%) */}
+                  <circle cx="18" cy="18" r="8" fill="none" stroke="#f1f5f9" strokeWidth="2.5" />
+                  <circle cx="18" cy="18" r="8" fill="none" stroke="#10b981" strokeWidth="2.5" strokeDasharray="12 100" strokeDashoffset="-25" strokeLinecap="round" />
+                </svg>
+                {/* Center orange circle with icon */}
+                <div className="absolute h-10 w-10 rounded-full bg-amber-500 shadow-md flex items-center justify-center text-white">
+                  <Activity className="h-5 w-5" />
+                </div>
+              </div>
+
+              {/* Legend with percentages */}
+              <div className="flex justify-between text-xs font-bold text-pulse-muted pt-2 border-t border-slate-100">
+                <div className="flex flex-col items-center">
+                  <span className="text-base text-rose-500">55%</span>
+                  <span className="text-[9px] uppercase tracking-wider">Sleep</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-base text-blue-500">33%</span>
+                  <span className="text-[9px] uppercase tracking-wider">Light Act</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-base text-emerald-500">12%</span>
+                  <span className="text-[9px] uppercase tracking-wider">Active</span>
+                </div>
+              </div>
+            </div>
+
+            {/* MIDDLE ROW: 4 colorful cards */}
+            <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Card 1: Purple */}
+              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[20px] p-5 text-white shadow-sm flex flex-col justify-between h-36 relative overflow-hidden">
+                <div className="z-10">
+                  <p className="text-[10px] uppercase font-bold tracking-wider opacity-80">Stress Index</p>
+                  <p className="text-2xl font-black mt-1">{avgStress ? `${avgStress}%` : "43%"}</p>
+                </div>
+                <div className="z-10 text-[10px] opacity-75 font-semibold">Jan 01 - Jan 10</div>
+                <svg className="absolute right-2 bottom-2 w-20 h-12 opacity-35" viewBox="0 0 100 40">
+                  <path d="M0 30 Q25 10 50 25 T100 10" fill="none" stroke="white" strokeWidth="3" />
+                </svg>
+              </div>
+
+              {/* Card 2: Blue */}
+              <div className="bg-gradient-to-br from-blue-500 to-sky-600 rounded-[20px] p-5 text-white shadow-sm flex flex-col justify-between h-36 relative overflow-hidden">
+                <div className="z-10">
+                  <p className="text-[10px] uppercase font-bold tracking-wider opacity-80">Steps Count</p>
+                  <p className="text-2xl font-black mt-1">{avgSteps ? avgSteps.toLocaleString() : "8,432"}</p>
+                </div>
+                <div className="z-10 text-[10px] opacity-75 font-semibold">Total Steps</div>
+                <svg className="absolute right-2 bottom-2 w-24 h-12 opacity-30" viewBox="0 0 120 40">
+                  <path d="M0 20 L20 20 L40 10 L60 30 L80 15 L100 35 L120 20" fill="none" stroke="white" strokeWidth="2.5" strokeDasharray="3 3" />
+                </svg>
+              </div>
+
+              {/* Card 3: Teal */}
+              <div className="bg-gradient-to-br from-teal-400 to-emerald-500 rounded-[20px] p-5 text-white shadow-sm flex flex-col justify-between h-36 relative overflow-hidden">
+                <div className="z-10">
+                  <p className="text-[10px] uppercase font-bold tracking-wider opacity-80">Sleep Rating</p>
+                  <p className="text-2xl font-black mt-1">{avgSleepScore ? `${avgSleepScore}/100` : "82/100"}</p>
+                </div>
+                <div className="z-10 text-[10px] opacity-75 font-semibold">Quality Sleep</div>
+                <div className="absolute right-4 bottom-4 flex gap-1 items-end h-12">
+                  <div className="w-1.5 bg-white/40 h-4 rounded-t" />
+                  <div className="w-1.5 bg-white/60 h-8 rounded-t" />
+                  <div className="w-1.5 bg-white h-12 rounded-t" />
+                  <div className="w-1.5 bg-white/70 h-6 rounded-t" />
+                </div>
+              </div>
+
+              {/* Card 4: Orange */}
+              <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-[20px] p-5 text-white shadow-sm flex flex-col justify-between h-36 relative overflow-hidden">
+                <div className="z-10">
+                  <p className="text-[10px] uppercase font-bold tracking-wider opacity-80">Active Duration</p>
+                  <p className="text-2xl font-black mt-1">{avgActiveMins ? `${avgActiveMins} min` : "432 min"}</p>
+                </div>
+                <div className="z-10 text-[10px] opacity-75 font-semibold">Jan 01 - Jan 10</div>
+                <div className="absolute right-4 bottom-4 flex gap-1 items-end h-10">
+                  <div className="w-1 bg-white/30 h-6" />
+                  <div className="w-1 bg-white/50 h-8" />
+                  <div className="w-1 bg-white h-10" />
+                  <div className="w-1 bg-white/70 h-5" />
+                  <div className="w-1 bg-white/40 h-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* BOTTOM ROW: Recent Activities & Data Table */}
+            <div className="bg-white rounded-[24px] border border-pulse-line p-6 shadow-sm min-h-[300px] flex flex-col">
+              <h3 className="text-sm font-bold text-pulse-ink uppercase tracking-wider mb-4">Recent Activities</h3>
+              <div className="space-y-4 flex-1 overflow-y-auto">
+                {[
+                  { title: "Symptom Logged", text: "Chest pain episodes recorded", time: "40 Mins Ago", bg: "bg-rose-500" },
+                  { title: "Medication Logged", text: "Aspirin 81mg administered", time: "1 day ago", bg: "bg-indigo-500" },
+                  { title: "Wearable Synced", text: "Pulse wearable metrics loaded", time: "40 Mins Ago", bg: "bg-emerald-500" },
+                  { title: "Memory Updated", text: "Cognee patient graph ingestion complete", time: "1 day ago", bg: "bg-amber-500" }
+                ].map((act, index) => (
+                  <div key={index} className="flex gap-3">
+                    <div className={`h-8 w-8 rounded-full ${act.bg} flex items-center justify-center text-white shrink-0 shadow-sm`}>
+                      <Activity className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <h4 className="text-xs font-bold text-pulse-ink leading-none">{act.title}</h4>
+                        <span className="text-[9px] text-pulse-muted font-bold leading-none">{act.time}</span>
+                      </div>
+                      <p className="text-[10px] text-pulse-muted mt-1 leading-snug">{act.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Data Records table */}
+            <div className="lg:col-span-2 bg-white rounded-[24px] border border-pulse-line p-6 shadow-sm min-h-[300px] flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-pulse-ink uppercase tracking-wider">Clinical Records Status</h3>
+                    <p className="text-xs text-pulse-muted">Overview of latest logs</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      className="border border-pulse-line bg-slate-50 rounded-lg px-3 py-1 text-xs text-pulse-ink outline-none focus:border-pulse-green w-36"
                     />
-                    <span className="mt-2 text-[10px] font-black uppercase tracking-wider text-pulse-muted">Low</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className="mb-1 text-xs font-black text-pulse-ink">{hasData ? stressFair : 0}</span>
-                    <div
-                      className="w-full rounded-t-xl bg-pulse-mint shadow-[0_12px_30px_rgba(238,251,208,0.6)] transition-all duration-700"
-                      style={{ height: hasData ? `${Math.max((stressFair / metrics!.length) * 150, 24)}px` : "24px" }}
-                    />
-                    <span className="mt-2 text-[10px] font-black uppercase tracking-wider text-pulse-muted">Fair</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className="mb-1 text-xs font-black text-pulse-ink">{hasData ? stressHigh : 0}</span>
-                    <div
-                      className="w-full rounded-t-xl bg-red-200 shadow-[0_12px_30px_rgba(254,202,202,0.55)] transition-all duration-700"
-                      style={{ height: hasData ? `${Math.max((stressHigh / metrics!.length) * 150, 24)}px` : "24px" }}
-                    />
-                    <span className="mt-2 text-[10px] font-black uppercase tracking-wider text-pulse-muted">High</span>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-
-            <Card className="pulse-rise bg-[#f2f1ff]/95">
-              <CardHeader title="Sleep Quality Score" eyebrow="Recovery Metrics" />
-              <CardBody className="p-4">
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
-                  <div className="group flex items-center gap-3 rounded-[18px] bg-white/75 p-3 shadow-sm transition hover:-translate-y-1">
-                    <div className="relative flex h-16 w-16 shrink-0 items-center justify-center">
-                      <svg className="absolute inset-0 transform -rotate-90" viewBox="0 0 36 36">
-                        <path className="text-pulse-line" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        <path className="text-pulse-green transition-all duration-500" strokeWidth="3" strokeDasharray={`${avgSleepScore}, 100`} strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                      </svg>
-                      <span className="text-xs font-black text-pulse-ink">{avgSleepScore}%</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-pulse-ink">This Sync</p>
-                      <p className="text-[10px] text-pulse-muted">Recovery rating</p>
-                    </div>
-                  </div>
-                  <div className="group flex items-center gap-3 rounded-[18px] bg-white/75 p-3 shadow-sm transition hover:-translate-y-1">
-                    <div className="relative flex h-16 w-16 shrink-0 items-center justify-center">
-                      <svg className="absolute inset-0 transform -rotate-90" viewBox="0 0 36 36">
-                        <path className="text-pulse-line" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        <path className="text-pulse-muted transition-all duration-500" strokeWidth="3" strokeDasharray={`${prevSleepScore}, 100`} strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                      </svg>
-                      <span className="text-xs font-black text-pulse-ink">{prevSleepScore}%</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-pulse-ink">Prior Log</p>
-                      <p className="text-[10px] text-pulse-muted">Comparative baseline</p>
-                    </div>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-
-            <Card className="pulse-rise bg-[#e9f9d9]/95">
-              <CardHeader title="SpO2 Stability" eyebrow="Oxygen Levels" />
-              <CardBody className="flex min-h-[144px] items-center gap-5 p-4">
-                <div className="relative flex h-24 w-24 shrink-0 items-center justify-center">
-                  <svg className="absolute inset-0 transform -rotate-90" viewBox="0 0 36 36">
-                    <path className="text-white/80" strokeWidth="2.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <path className="text-pulse-green transition-all duration-500" strokeWidth="2.5" strokeDasharray={`${spo2Percentage}, 100`} strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  </svg>
-                  <span className="text-base font-black text-pulse-ink">{avgSpO2}%</span>
-                </div>
-                <div>
-                  <p className="text-sm font-black text-pulse-ink">Oxygen Saturation</p>
-                  <p className="mt-1 text-xs font-semibold leading-5 text-pulse-muted">
-                    Stable respiratory signal from the latest wearable sync.
-                  </p>
-                  <span className="mt-3 inline-flex rounded-full bg-white/75 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-pulse-muted">
-                    {spo2Percentage >= 95 ? "Normal range" : "Review"}
-                  </span>
-                </div>
-              </CardBody>
-            </Card>
-
-            <Card className="pulse-rise bg-white/88">
-              <CardHeader title="Activity Distribution" eyebrow="Key Drivers" />
-              <CardBody className="flex min-h-[190px] flex-col justify-around gap-4 p-5">
-                <div>
-                  <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-pulse-ink">Active Zones</span>
-                    <span className="text-pulse-muted">{avgActiveMins} min / 90</span>
-                  </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-pulse-line">
-                    <div className="pulse-meter h-full rounded-full bg-pulse-green" style={{ width: `${activePercentage}%` }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-pulse-ink">Sleep Duration</span>
-                    <span className="text-pulse-muted">{avgSleepDur} hrs / 8.0</span>
-                  </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-pulse-line">
-                    <div className="h-full rounded-full bg-pulse-ink transition-all duration-700" style={{ width: `${sleepPercentage}%` }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-pulse-ink">Average Stress</span>
-                    <span className="text-pulse-muted">{avgStress}% score</span>
-                  </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-pulse-line">
-                    <div className="h-full rounded-full bg-orange-300 transition-all duration-700" style={{ width: `${stressPercentage}%` }} />
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-
-            <Card className="pulse-rise-delay bg-white/88 xl:col-span-2">
-              <CardHeader title="Daily Summary Statistics" eyebrow="Activity Totals" />
-              <CardBody className="p-5">
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  <div className="rounded-[18px] bg-[#f7f7f8] p-4 shadow-sm transition hover:-translate-y-1">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-pulse-muted block">Steps</span>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Navigation className="h-4.5 w-4.5 text-pulse-ink rotate-45" />
-                      <span className="text-xl font-black text-pulse-ink">{avgSteps.toLocaleString()}</span>
-                    </div>
-                  </div>
-
-                  <div className="rounded-[18px] bg-[#fff6cc] p-4 shadow-sm transition hover:-translate-y-1">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-pulse-muted block">Burn Rate</span>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Flame className="h-4.5 w-4.5 text-orange-400" />
-                      <span className="text-xl font-black text-pulse-ink">{avgCalories} kcal</span>
-                    </div>
-                  </div>
-
-                  <div className="rounded-[18px] bg-[#f2f1ff] p-4 shadow-sm transition hover:-translate-y-1">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-pulse-muted block">Distance</span>
-                    <span className="text-xl font-black text-pulse-ink mt-1 block">{totalDistance} km</span>
-                  </div>
-
-                  <div className="rounded-[18px] bg-[#e9f9d9] p-4 shadow-sm transition hover:-translate-y-1">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-pulse-muted block">Active Zones</span>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Zap className="h-4.5 w-4.5 text-pulse-green" />
-                      <span className="text-xl font-black text-pulse-ink">{avgActiveMins} min</span>
-                    </div>
+                    <button className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm">
+                      + Add
+                    </button>
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center gap-2 border-t border-pulse-line/60 pt-3 text-xs text-pulse-muted">
-                  <Info className="h-3.5 w-3.5 shrink-0" />
-                  Calculated from 100 simulated log points.
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-[10px] font-bold text-pulse-muted uppercase tracking-wider">
+                        <th className="py-2">Log ID</th>
+                        <th className="py-2">Type</th>
+                        <th className="py-2">Source</th>
+                        <th className="py-2">Severity</th>
+                        <th className="py-2 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50 text-[11px] font-semibold text-pulse-ink">
+                      {[
+                        { id: "12386", type: "Symptom", source: "Wearable Sync", severity: "Moderate", status: "Processed", color: "bg-rose-100 text-rose-700" },
+                        { id: "12387", type: "Medication", source: "Manual Input", severity: "81mg", status: "Active", color: "bg-indigo-100 text-indigo-700" },
+                        { id: "12388", type: "Outcome", source: "Clinical Diary", severity: "Improved", status: "Flagged", color: "bg-amber-100 text-amber-700" }
+                      ].map((row, index) => (
+                        <tr key={index}>
+                          <td className="py-2.5 font-bold text-pulse-muted">#{row.id}</td>
+                          <td className="py-2.5">{row.type}</td>
+                          <td className="py-2.5">{row.source}</td>
+                          <td className="py-2.5">{row.severity}</td>
+                          <td className="py-2.5 text-right">
+                            <span className={`px-2 py-1.5 rounded-full text-[9px] font-bold ${row.color}`}>
+                              {row.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </CardBody>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
       </main>

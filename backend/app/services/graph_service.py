@@ -672,15 +672,31 @@ class CogneeGraphService:
 
     async def query(self, question: str) -> dict:
         """
-        Answer a medical question from the knowledge graph using /api/v1/recall.
-        Only information from the uploaded document is returned.
+        Answer a medical question from the knowledge graph using GRAPH_COMPLETION search,
+        falling back to recall. Only information from the uploaded document is returned.
         """
         logger.info("-" * 60)
         logger.info(f"[QUERY] Question: '{question}'")
 
+        # Try GRAPH_COMPLETION first
+        try:
+            resp = await _cognee_search(
+                self.base_url, question, "GRAPH_COMPLETION", self.dataset
+            )
+            logger.info(f"[QUERY] Cognee search status: {resp.status_code}")
+            
+            if resp.status_code == 200:
+                answer = _extract_text_from_recall(resp.json())
+                if answer and answer != "No information found for this query.":
+                    logger.info(f"[QUERY] ✓ Answer extracted from search ({len(answer)} chars)")
+                    logger.info("-" * 60)
+                    return {"graph_answer": answer}
+        except Exception as exc:
+            logger.warning(f"[QUERY] GRAPH_COMPLETION search failed: {exc}")
+
+        # Fallback to recall
         try:
             resp = await _cognee_recall(self.base_url, question)
-
             logger.info(f"[QUERY] Cognee recall status: {resp.status_code}")
 
             if resp.status_code in (409, 422):
@@ -692,7 +708,7 @@ class CogneeGraphService:
 
             resp.raise_for_status()
             answer = _extract_text_from_recall(resp.json())
-            logger.info(f"[QUERY] ✓ Answer extracted ({len(answer)} chars)")
+            logger.info(f"[QUERY] ✓ Answer extracted from recall ({len(answer)} chars)")
             logger.info("-" * 60)
             return {"graph_answer": answer}
 
@@ -1187,6 +1203,32 @@ class CogneeGraphService:
         except Exception as e:
             logger.error(f"[MEMIFY] Failed: {e}")
             return {"status": "failed", "error": str(e)}
+
+    async def reset_dataset(self) -> dict:
+        """
+        Delete the entire dataset in Cognee Cloud (equivalent to forget/pruning).
+        """
+        logger.info(f"[RESET] Calling forget on dataset '{self.dataset}' in Cognee Cloud...")
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                resp = await client.post(
+                    f"{self.base_url}/api/v1/forget",
+                    headers=_base_headers(json_body=True),
+                    json={
+                        "dataset": self.dataset
+                    }
+                )
+            logger.info(f"[RESET] Cognee forget response status: {resp.status_code}")
+            if resp.status_code not in (200, 204, 404):
+                logger.error(f"[RESET] Failed to forget dataset: {resp.text}")
+                raise RuntimeError(f"Cognee forget error: {resp.text}")
+            return {"status": "success", "message": f"Dataset '{self.dataset}' forgotten from Cognee Cloud."}
+        except httpx.HTTPStatusError as exc:
+            logger.error(f"[RESET] HTTP error forgetting dataset: {exc.response.text}", exc_info=True)
+            raise RuntimeError(f"Cognee API error {exc.response.status_code}: {exc.response.text}") from exc
+        except Exception as exc:
+            logger.error(f"[RESET] Unexpected error resetting dataset: {exc}", exc_info=True)
+            raise exc
 
 
 # ── Singleton ─────────────────────────────────────────────────────────────────
