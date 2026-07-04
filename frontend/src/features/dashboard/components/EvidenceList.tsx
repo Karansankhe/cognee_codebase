@@ -28,7 +28,7 @@ export function EvidenceList({ citations, onGenerateSummary, isGeneratingSummary
           <button
             onClick={onGenerateSummary}
             disabled={isGeneratingSummary}
-            className="flex items-center gap-2 rounded-full border border-pulse-line bg-white/80 px-3 py-1.5 text-xs font-semibold text-pulse-ink shadow-sm transition-all hover:bg-pulse-green/20 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center gap-2 rounded-full border border-pulse-line bg-white/80 px-3 py-1.5 text-xs font-normal text-pulse-ink shadow-sm transition-all hover:bg-pulse-green/20 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isGeneratingSummary ? (
               <Loader2 className="h-3 w-3 animate-spin" />
@@ -48,7 +48,7 @@ export function EvidenceList({ citations, onGenerateSummary, isGeneratingSummary
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <p className="text-sm font-semibold leading-5">{citation.date}</p>
+                  <p className="text-sm font-normal leading-5">{citation.date}</p>
                   <p className="mt-1 line-clamp-1 text-xs leading-5 text-pulse-muted">
                     {citation.event}
                   </p>
@@ -57,7 +57,7 @@ export function EvidenceList({ citations, onGenerateSummary, isGeneratingSummary
                   {citation.relationship}
                 </Badge>
               </div>
-              <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-pulse-muted">
+              <p className="mt-0.5 text-[10px] font-normal uppercase tracking-[0.12em] text-pulse-muted">
                 Source: {citation.source}
               </p>
             </article>
@@ -67,3 +67,5 @@ export function EvidenceList({ citations, onGenerateSummary, isGeneratingSummary
     </Card>
   );
 }
+
+

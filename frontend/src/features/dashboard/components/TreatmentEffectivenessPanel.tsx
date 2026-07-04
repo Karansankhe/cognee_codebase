@@ -16,14 +16,14 @@ export function TreatmentEffectivenessPanel({
       <CardBody className="space-y-3">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-3xl font-semibold">
+            <p className="text-3xl font-normal">
               {score}%
             </p>
             <p className="mt-1 text-sm text-pulse-muted">
               {helpedAttempts}/{totalAttempts} attempts helped
             </p>
           </div>
-          <div className="rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-800">
+          <div className="rounded-full bg-cyan-100 px-3 py-1 text-xs font-normal text-cyan-800">
             Outcome score
           </div>
         </div>
@@ -32,7 +32,7 @@ export function TreatmentEffectivenessPanel({
           symptom severity after similar wearable conditions.
         </p>
         <div className="rounded-[16px] bg-white p-3">
-          <p className="text-xs font-semibold text-pulse-muted">Sample size</p>
+          <p className="text-xs font-normal text-pulse-muted">Sample size</p>
           <p className="mt-1 text-sm text-pulse-muted">
             Based on {totalAttempts} treatment attempts.
           </p>
@@ -41,3 +41,5 @@ export function TreatmentEffectivenessPanel({
     </Card>
   );
 }
+
+

@@ -17,10 +17,10 @@ export function InsightCard({ pattern }: InsightCardProps) {
       <CardBody className="space-y-2.5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold text-pulse-muted">
+            <p className="text-xs font-normal text-pulse-muted">
               Symptom risk
             </p>
-            <h3 className="mt-0.5 text-3xl font-semibold tracking-normal text-pulse-ink">
+            <h3 className="mt-0.5 text-3xl font-normal tracking-normal text-pulse-ink">
               {pattern?.symptom || "No pattern"}
             </h3>
           </div>
@@ -55,3 +55,5 @@ export function InsightCard({ pattern }: InsightCardProps) {
     </Card>
   );
 }
+
+

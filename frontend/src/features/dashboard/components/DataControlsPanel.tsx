@@ -23,11 +23,11 @@ export function DataControlsPanel({
           <div className="flex flex-col gap-4 rounded-[20px] border border-white/80 bg-white/92 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2.5">
-                <p className="text-sm font-semibold">
+                <p className="text-sm font-normal">
                   Limited health sharing
                 </p>
                 <span
-                  className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] ${
+                  className={`rounded-full px-2.5 py-1 text-[10px] font-normal uppercase tracking-[0.12em] ${
                     minimumSyncEnabled
                       ? "bg-pulse-mint text-pulse-ink"
                       : "bg-pulse-surface text-pulse-muted"
@@ -39,7 +39,7 @@ export function DataControlsPanel({
               <p className="mt-1 max-w-2xl text-xs leading-5 text-pulse-muted">
                 Pulse only uses heart rate, sleep, activity, and blood oxygen.
               </p>
-              <span className="mt-3 inline-flex rounded-full bg-pulse-sky px-4 py-2 text-sm font-semibold text-pulse-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+              <span className="mt-3 inline-flex rounded-full bg-pulse-sky px-4 py-2 text-sm font-normal text-pulse-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
                 {minimumSyncEnabled
                   ? "Status: Limited sharing active"
                   : "Status: Sharing paused for review"}
@@ -72,22 +72,22 @@ export function DataControlsPanel({
                   key={entry.id}
                   className="rounded-[16px] border border-pulse-line/70 bg-white/72 p-3 shadow-[0_10px_24px_rgba(20,20,24,0.04),inset_0_1px_0_rgba(255,255,255,0.72)]"
                 >
-                  <p className="line-clamp-2 min-h-10 text-xs font-semibold leading-5">
+                  <p className="line-clamp-2 min-h-10 text-xs font-normal leading-5">
                     {entry.event}
                   </p>
-                  <p className="mt-2 line-clamp-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-pulse-muted">
+                  <p className="mt-2 line-clamp-1 text-[10px] font-normal uppercase tracking-[0.12em] text-pulse-muted">
                     {entry.source}
                   </p>
                   <div className="mt-2 flex gap-2">
                     <button
-                      className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold shadow-sm transition hover:bg-pulse-mint"
+                      className="rounded-full bg-white px-3 py-1.5 text-xs font-normal shadow-sm transition hover:bg-pulse-mint"
                       onClick={() => onRedactEntry(entry.id)}
                       type="button"
                     >
                       Redact
                     </button>
                     <button
-                      className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-red-700 shadow-sm transition hover:bg-red-50"
+                      className="rounded-full bg-white px-3 py-1.5 text-xs font-normal text-red-700 shadow-sm transition hover:bg-red-50"
                       onClick={() => onDeleteEntry(entry.id)}
                       type="button"
                     >
@@ -98,7 +98,7 @@ export function DataControlsPanel({
               ))}
 
               <div className="rounded-[16px] border border-white/70 bg-white/62 p-3">
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-pulse-muted">
+                <p className="text-[10px] font-normal uppercase tracking-[0.14em] text-pulse-muted">
                   What happens
                 </p>
                 <p className="mt-2 text-xs leading-5 text-pulse-muted">
@@ -113,3 +113,5 @@ export function DataControlsPanel({
     </Card>
   );
 }
+
+

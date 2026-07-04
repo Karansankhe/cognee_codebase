@@ -99,7 +99,7 @@ export function MemoryGraphPreview({
       <CardHeader
         action={
           strongestEdge ? (
-            <span className="inline-flex items-center gap-2 rounded-full bg-pulse-green px-4 py-1.5 text-sm font-semibold text-pulse-ink">
+            <span className="inline-flex items-center gap-2 rounded-full bg-pulse-green px-4 py-1.5 text-sm font-normal text-pulse-ink">
               <span className="h-2 w-2 rounded-full bg-green-600" />
               {strongestEdge.confidence}% strongest
             </span>
@@ -160,16 +160,16 @@ export function MemoryGraphPreview({
             />
           </svg>
 
-          <span className="absolute left-[24%] top-[40%] rounded-full bg-white px-3 py-1 text-xs font-medium text-pulse-muted shadow-sm">
+          <span className="absolute left-[24%] top-[40%] rounded-full bg-white px-3 py-1 text-xs font-normal text-pulse-muted shadow-sm">
             precedes 92%
           </span>
-          <span className="absolute left-[24%] bottom-[35%] rounded-full bg-white px-3 py-1 text-xs font-medium text-pulse-muted shadow-sm">
+          <span className="absolute left-[24%] bottom-[35%] rounded-full bg-white px-3 py-1 text-xs font-normal text-pulse-muted shadow-sm">
             correlates 86%
           </span>
-          <span className="absolute left-[42%] top-[30%] rounded-full bg-white px-3 py-1 text-xs font-medium text-pulse-muted shadow-sm">
+          <span className="absolute left-[42%] top-[30%] rounded-full bg-white px-3 py-1 text-xs font-normal text-pulse-muted shadow-sm">
             precedes
           </span>
-          <span className="absolute right-[29%] top-[43%] rounded-full bg-white px-3 py-1 text-xs font-medium text-pulse-muted shadow-sm">
+          <span className="absolute right-[29%] top-[43%] rounded-full bg-white px-3 py-1 text-xs font-normal text-pulse-muted shadow-sm">
             alleviates
           </span>
 
@@ -183,10 +183,10 @@ export function MemoryGraphPreview({
               <div>
                 <div className="flex items-center gap-2">
                   <span className={`h-2 w-2 rounded-full ${nodeAccent(node.type)}`} />
-                  <p className="text-xs font-semibold leading-4">{node.label}</p>
+                  <p className="text-xs font-normal leading-4">{node.label}</p>
                 </div>
                 <span
-                  className={`mt-2 inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${tagClass(
+                  className={`mt-2 inline-flex rounded-full px-2.5 py-0.5 text-xs font-normal ${tagClass(
                     node.type,
                   )}`}
                 >
@@ -205,11 +205,11 @@ export function MemoryGraphPreview({
             >
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-pulse-green" />
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-pulse-muted">
+                <p className="text-[11px] font-normal uppercase tracking-[0.14em] text-pulse-muted">
                   {insight.label}
                 </p>
               </div>
-              <p className="mt-2 text-base font-semibold">{insight.value}</p>
+              <p className="mt-2 text-base font-normal">{insight.value}</p>
               <p className="mt-1 line-clamp-2 text-xs leading-5 text-pulse-muted">
                 {insight.description}
               </p>
@@ -220,3 +220,5 @@ export function MemoryGraphPreview({
     </Card>
   );
 }
+
+

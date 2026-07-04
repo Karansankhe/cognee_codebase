@@ -43,8 +43,8 @@ export function AppShell({
               src={pulseLogo}
             />
             <div className="w-36 opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100">
-              <p className="text-lg font-semibold tracking-normal">Pulse</p>
-              <p className="text-xs font-medium uppercase tracking-[0.12em] text-pulse-muted">
+              <p className="text-lg font-normal tracking-normal">Pulse</p>
+              <p className="text-xs font-normal uppercase tracking-[0.12em] text-pulse-muted">
                 Personal memory
               </p>
             </div>
@@ -54,7 +54,7 @@ export function AppShell({
             {navItems.map((item) => (
               <button
                 key={item}
-                className={`flex w-full items-center gap-3 rounded-full px-3 py-2.5 text-left text-sm font-medium transition ${
+                className={`flex w-full items-center gap-3 rounded-full px-3 py-2.5 text-left text-sm font-normal transition ${
                   item === activePage
                     ? "bg-white text-pulse-ink shadow-sm"
                     : "text-pulse-muted hover:bg-white/60 hover:text-pulse-ink"
@@ -77,7 +77,7 @@ export function AppShell({
           <div
             className="mt-7 w-48 rounded-[20px] bg-white/70 p-3 opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100"
           >
-            <p className="text-sm font-semibold">Live session</p>
+            <p className="text-sm font-normal">Live session</p>
             <p className="mt-1 text-xs leading-5 text-pulse-muted">
               Streaming wearable and symptom signals.
             </p>
@@ -90,3 +90,5 @@ export function AppShell({
     </div>
   );
 }
+
+

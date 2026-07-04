@@ -48,7 +48,7 @@ export function PatientSnapshot({ patient: defaultPatient, dataSources, onWearab
       <CardHeader title="Patient Snapshot" eyebrow="Active memory" />
       <CardBody className="space-y-2.5">
         <div className="flex items-center gap-3">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pulse-ink text-sm font-semibold text-white uppercase">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pulse-ink text-sm font-normal text-white uppercase">
             {patientInfo.name
               ? patientInfo.name
                 .split(" ")
@@ -58,7 +58,7 @@ export function PatientSnapshot({ patient: defaultPatient, dataSources, onWearab
               : "NA"}
           </div>
           <div className="min-w-0">
-            <h3 className="truncate text-sm font-semibold">{patientInfo.name || "Patient"}</h3>
+            <h3 className="truncate text-sm font-normal">{patientInfo.name || "Patient"}</h3>
             <p className="text-xs text-pulse-muted">
               {patientInfo.age || 0} years old
             </p>
@@ -88,13 +88,13 @@ export function PatientSnapshot({ patient: defaultPatient, dataSources, onWearab
                 className="rounded-[20px] bg-white/90 px-3.5 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium leading-5">{source.name}</p>
+                  <p className="text-sm font-normal leading-5">{source.name}</p>
 
                   {isSyncable ? (
                     <button
                       onClick={onWearableSync}
                       disabled={isSyncingWearable}
-                      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wider transition-all ${isSyncingWearable
+                      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-normal uppercase tracking-wider transition-all ${isSyncingWearable
                           ? "bg-blue-100 text-blue-700 opacity-70 cursor-not-allowed"
                           : "bg-white border border-pulse-line hover:bg-pulse-green/20 cursor-pointer"
                         }`}
@@ -108,7 +108,7 @@ export function PatientSnapshot({ patient: defaultPatient, dataSources, onWearab
                 <p className="mt-0.5 line-clamp-1 text-xs leading-4 text-pulse-muted">
                   {source.description}
                 </p>
-                <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-pulse-muted">
+                <p className="mt-0.5 text-[10px] font-normal uppercase tracking-[0.12em] text-pulse-muted">
                   Last sync: {isSyncable && isSyncingWearable ? "SYNCING..." : source.lastSyncedAt}
                 </p>
               </div>
@@ -119,3 +119,5 @@ export function PatientSnapshot({ patient: defaultPatient, dataSources, onWearab
     </Card>
   );
 }
+
+

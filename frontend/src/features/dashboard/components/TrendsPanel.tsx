@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { DownloadCloud, Loader2 } from "lucide-react";
 import { Card, CardBody, CardHeader } from "../../../components/ui/Card";
+import { apiUrl } from "../../../lib/api";
 import type { TrendSummary } from "../types/dashboard.types";
 
 interface TrendsPanelProps {
@@ -43,7 +44,7 @@ export function TrendsPanel({ trends: defaultTrends }: TrendsPanelProps) {
   const handleDownloadPDF = async () => {
     setIsDownloading(true);
     try {
-      const response = await fetch("/api/v1/insights/pdf", {
+      const response = await fetch(apiUrl("/api/v1/insights/pdf"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(displayData),
@@ -76,7 +77,7 @@ export function TrendsPanel({ trends: defaultTrends }: TrendsPanelProps) {
           <button
             onClick={handleDownloadPDF}
             disabled={isDownloading}
-            className="flex items-center gap-2 rounded-full border border-pulse-line bg-white/80 px-3 py-1.5 text-xs font-semibold text-pulse-ink shadow-sm transition-all hover:bg-pulse-green/20 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center gap-2 rounded-full border border-pulse-line bg-white/80 px-3 py-1.5 text-xs font-normal text-pulse-ink shadow-sm transition-all hover:bg-pulse-green/20 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isDownloading ? <Loader2 className="h-3 w-3 animate-spin" /> : <DownloadCloud className="h-3 w-3" />}
             PDF
@@ -88,7 +89,7 @@ export function TrendsPanel({ trends: defaultTrends }: TrendsPanelProps) {
         <div className="space-y-2">
           {displayData.trends.map((trend, i) => (
             <div key={i} className="grid grid-cols-[80px_1fr_60px] items-center gap-3">
-              <span className="text-xs font-semibold">{trend.label}</span>
+              <span className="text-xs font-normal">{trend.label}</span>
               <div className="h-2 overflow-hidden rounded-full bg-white">
                 <div
                   className="h-full rounded-full bg-pulse-green"
@@ -103,3 +104,5 @@ export function TrendsPanel({ trends: defaultTrends }: TrendsPanelProps) {
     </Card>
   );
 }
+
+

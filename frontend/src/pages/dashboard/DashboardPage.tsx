@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, DownloadCloud } from "lucide-react";
 import { AppShell } from "../../components/layout/AppShell";
+import { apiUrl } from "../../lib/api";
 import { getDashboardData } from "../../features/dashboard/api/dashboard.api";
 import { ConfidencePanel } from "../../features/dashboard/components/ConfidencePanel";
 import {
@@ -98,7 +99,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const handleGenerateSummary = async () => {
     setIsGeneratingSummary(true);
     try {
-      const response = await fetch("/api/v1/generate_summary");
+      const response = await fetch(apiUrl("/api/v1/generate_summary"));
       if (!response.ok) throw new Error("Failed to generate summary");
       const result = await response.json();
       setSummaryText(result.summary || "No summary returned.");
@@ -114,7 +115,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     if (!summaryText) return;
     setIsDownloadingSummary(true);
     try {
-      const response = await fetch("/api/v1/summary/pdf", {
+      const response = await fetch(apiUrl("/api/v1/summary/pdf"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ summary: summaryText }),
@@ -161,7 +162,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       <AppShell activePage="Dashboard" onNavigate={onNavigate}>
         <div className="grid min-h-screen place-items-center px-5">
           <div className="rounded-lg border border-pulse-line bg-white px-5 py-4 shadow-pulse">
-            <p className="text-sm font-bold text-pulse-muted">
+            <p className="text-sm font-normal text-pulse-muted">
               Loading Pulse memory...
             </p>
           </div>
@@ -333,7 +334,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const handleWearableSync = async () => {
     setIsSyncingWearable(true);
     try {
-      const response = await fetch("/api/v1/wearable/sync", {
+      const response = await fetch(apiUrl("/api/v1/wearable/sync"), {
         method: "POST"
       });
       if (!response.ok) throw new Error("Sync failed");
@@ -490,10 +491,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <div className="w-full max-w-2xl rounded-[28px] border border-white/70 bg-white/95 p-6 shadow-[0_30px_90px_rgba(20,20,24,0.25)] flex flex-col max-h-[85vh]">
             <div className="flex items-start justify-between gap-4 border-b border-pulse-line pb-4">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-pulse-muted">
+                <p className="text-[10px] font-normal uppercase tracking-[0.16em] text-pulse-muted">
                   Doctor-Ready Summary
                 </p>
-                <h2 className="mt-1 text-2xl font-semibold tracking-normal text-pulse-ink">
+                <h2 className="mt-1 text-2xl font-normal tracking-normal text-pulse-ink">
                   Patient Visit & Log History
                 </h2>
               </div>
@@ -513,7 +514,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     key={idx}
                     className="rounded-2xl border border-pulse-green/20 bg-white/80 p-4 shadow-[0_4px_12px_rgba(0,0,0,0.02)]"
                   >
-                    <h3 className="text-sm font-bold text-pulse-ink border-b border-pulse-line pb-1.5 mb-2.5">
+                    <h3 className="text-sm font-normal text-pulse-ink border-b border-pulse-line pb-1.5 mb-2.5">
                       {sec.title}
                     </h3>
                     <div className="text-sm leading-6 text-pulse-muted">
@@ -536,7 +537,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
             <div className="mt-6 flex justify-end gap-2 border-t border-pulse-line pt-4">
               <button
-                className="flex items-center gap-2 rounded-full border border-pulse-line bg-white/80 px-4 py-2 text-sm font-semibold text-pulse-ink shadow-sm transition hover:bg-pulse-green/20 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex items-center gap-2 rounded-full border border-pulse-line bg-white/80 px-4 py-2 text-sm font-normal text-pulse-ink shadow-sm transition hover:bg-pulse-green/20 disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={handleDownloadSummaryPDF}
                 disabled={isDownloadingSummary}
                 type="button"
@@ -549,7 +550,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                 Download PDF
               </button>
               <button
-                className="rounded-full bg-pulse-ink text-white px-6 py-2 text-sm font-semibold transition hover:bg-black"
+                className="rounded-full bg-pulse-ink text-white px-6 py-2 text-sm font-normal transition hover:bg-black"
                 onClick={() => setSummaryText(null)}
                 type="button"
               >
@@ -562,3 +563,5 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     </AppShell>
   );
 }
+
+
