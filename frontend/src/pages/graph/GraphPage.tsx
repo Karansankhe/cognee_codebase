@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Send, Loader2, Sparkles, User, Brain, Plus, Mic, Image, PenTool, Globe } from "lucide-react";
+import { Send, Loader2, Sparkles, User, Brain, Plus, Mic, Image, PenTool, Globe, DatabaseZap, Network } from "lucide-react";
 import { AppShell } from "../../components/layout/AppShell";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
 
@@ -34,6 +34,8 @@ export function GraphPage() {
       navigate("/graph");
     } else if (page === "Trends") {
       navigate("/trends");
+    } else if (page === "Summary") {
+      navigate("/summary");
     }
   };
 
@@ -86,9 +88,26 @@ export function GraphPage() {
           <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-pulse-muted">
             Knowledge Base
           </p>
-          <h1 className="text-3xl font-semibold tracking-normal">
-            Memory Graph RAG Chat
-          </h1>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="text-3xl font-semibold tracking-normal">
+                Cognee Memory Graph Assistant
+              </h1>
+              <p className="mt-1 text-sm font-medium text-pulse-muted">
+                Ask patient-history questions with recall, graph context, and cited memory.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-pulse-green/50 bg-pulse-green/25 px-3 py-1.5 text-xs font-bold text-pulse-ink shadow-sm">
+                <DatabaseZap className="h-3.5 w-3.5" />
+                Cognee recall
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-bold text-cyan-900 shadow-sm">
+                <Network className="h-3.5 w-3.5" />
+                Graph RAG
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Chat UI Card */}
