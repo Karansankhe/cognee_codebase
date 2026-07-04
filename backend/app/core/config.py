@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     cognee_api_key: Optional[str] = None
     cognee_dataset: str = "medical_records"
     elevenlabs_api_key: Optional[str] = None
+    smallest_api_key: Optional[str] = None
 
     # ── Legacy (kept optional for backward compat) ────────────────────────
     groq_api_key: Optional[str] = None

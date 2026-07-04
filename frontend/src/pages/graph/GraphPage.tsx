@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Send, Loader2, Sparkles, User, Brain, Plus, Mic, Image, PenTool, Globe, DatabaseZap, Network } from "lucide-react";
+import { Send, Loader2, Sparkles, User, Brain, Plus, Mic, MicOff, Volume2, Image, PenTool, Globe, DatabaseZap, Network } from "lucide-react";
 import { AppShell } from "../../components/layout/AppShell";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
 
@@ -26,6 +26,9 @@ export function GraphPage() {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isQuerying, setIsQuerying] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   const handleNavigate = (page: string) => {
     if (page === "Dashboard") {
@@ -39,7 +42,7 @@ export function GraphPage() {
     }
   };
 
-  const handleSend = async (text: string) => {
+  const handleSend = async (text: string, shouldPlayAudio = false) => {
     if (!text.trim()) return;
 
     // Add user message
@@ -56,14 +59,39 @@ export function GraphPage() {
 
       if (!response.ok) throw new Error("Query failed");
       const result = await response.json();
+      const answer = result.graph_answer || "No response received from your memory graph.";
 
       setMessages((prev) => [
         ...prev,
         {
           sender: "ai",
-          text: result.graph_answer || "No response received from your memory graph.",
+          text: answer,
         },
       ]);
+
+      if (shouldPlayAudio && answer) {
+        setIsPlayingAudio(true);
+        try {
+          const ttsResponse = await fetch("/api/v1/text-to-speech", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: answer }),
+          });
+          if (ttsResponse.ok) {
+            const audioBlob = await ttsResponse.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audio.onended = () => setIsPlayingAudio(false);
+            audio.onerror = () => setIsPlayingAudio(false);
+            await audio.play();
+          } else {
+            setIsPlayingAudio(false);
+          }
+        } catch (ttsErr) {
+          console.error("TTS playback failed:", ttsErr);
+          setIsPlayingAudio(false);
+        }
+      }
     } catch (err) {
       console.error(err);
       setMessages((prev) => [
@@ -75,6 +103,76 @@ export function GraphPage() {
       ]);
     } finally {
       setIsQuerying(false);
+    }
+  };
+
+  const handleMicClick = async () => {
+    if (isRecording) {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+        setIsRecording(false);
+      }
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new MediaRecorder(stream);
+        const chunks: Blob[] = [];
+
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) {
+            chunks.push(e.data);
+          }
+        };
+
+        recorder.onstop = async () => {
+          const audioBlob = new Blob(chunks, { type: "audio/webm" });
+          setIsQuerying(true);
+          setMessages((prev) => [...prev, { sender: "ai", text: "Transcribing your voice..." }]);
+
+          try {
+            const formData = new FormData();
+            formData.append("file", audioBlob, "voice_input.webm");
+
+            const sttResponse = await fetch("/api/v1/speech-to-text", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (!sttResponse.ok) throw new Error("STT translation failed");
+            const sttResult = await sttResponse.json();
+            const text = sttResult.text || "";
+
+            setMessages((prev) => prev.slice(0, -1));
+
+            if (!text.trim()) {
+              setMessages((prev) => [
+                ...prev,
+                { sender: "ai", text: "Sorry, I couldn't hear or understand anything." }
+              ]);
+              setIsQuerying(false);
+              return;
+            }
+
+            await handleSend(text, true);
+          } catch (err) {
+            console.error(err);
+            setMessages((prev) => [
+              ...prev.slice(0, -1),
+              { sender: "ai", text: "Encountered an error transcribing your query." }
+            ]);
+            setIsQuerying(false);
+          }
+
+          stream.getTracks().forEach((track) => track.stop());
+        };
+
+        recorder.start();
+        setMediaRecorder(recorder);
+        setIsRecording(true);
+      } catch (err) {
+        console.error("Could not access microphone:", err);
+        alert("Microphone permission denied or not supported.");
+      }
     }
   };
 
@@ -151,8 +249,12 @@ export function GraphPage() {
                     className="flex-1 bg-transparent text-sm text-pulse-ink outline-none placeholder:text-pulse-muted/80"
                   />
 
-                  <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
-                    <Mic className="h-5 w-5" />
+                  <button
+                    type="button"
+                    onClick={handleMicClick}
+                    className={`transition cursor-pointer p-1.5 rounded-full ${isRecording ? "text-red-500 bg-red-500/10 animate-pulse" : "text-pulse-muted hover:text-pulse-ink"}`}
+                  >
+                    {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                   </button>
 
                   <button
@@ -276,8 +378,12 @@ export function GraphPage() {
                       className="flex-1 bg-transparent text-sm text-pulse-ink outline-none placeholder:text-pulse-muted"
                     />
 
-                    <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
-                      <Mic className="h-5 w-5" />
+                    <button
+                      type="button"
+                      onClick={handleMicClick}
+                      className={`transition cursor-pointer p-1.5 rounded-full ${isRecording ? "text-red-500 bg-red-500/10 animate-pulse" : "text-pulse-muted hover:text-pulse-ink"}`}
+                    >
+                      {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                     </button>
 
                     <button
@@ -288,6 +394,20 @@ export function GraphPage() {
                       <Send className="h-4.5 w-4.5" />
                     </button>
                   </form>
+
+                  {isPlayingAudio && (
+                    <div className="flex items-center justify-center gap-2 text-xs text-pulse-green font-semibold bg-pulse-green/10 py-1.5 px-3 rounded-full animate-pulse max-w-xs mx-auto">
+                      <Volume2 className="h-4 w-4 animate-bounce" />
+                      <span>Reading response aloud...</span>
+                    </div>
+                  )}
+
+                  {isRecording && (
+                    <div className="flex items-center justify-center gap-2 text-xs text-red-500 font-semibold bg-red-500/10 py-1.5 px-3 rounded-full animate-pulse max-w-xs mx-auto">
+                      <span className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
+                      <span>Recording voice query... Click Mic again to stop.</span>
+                    </div>
+                  )}
 
                   {/* Suggestion cards (small horizontal chips below input during chat) */}
                   <div>

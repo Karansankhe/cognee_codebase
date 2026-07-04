@@ -29,6 +29,7 @@ import json
 import logging
 import re
 import asyncio
+import tempfile
 from typing import Any, Optional
 
 import httpx

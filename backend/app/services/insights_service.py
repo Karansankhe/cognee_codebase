@@ -95,7 +95,7 @@ class InsightsService:
             elif content.startswith("```"):
                 content = content[3:-3]
             
-            parsed = json.loads(content)
+            parsed = json.loads(content, strict=False)
             
             # 4. Ingest the generated insights back into Cognee so it "remembers" them
             logger.info("[INSIGHTS] Saving generated insights to knowledge graph...")
@@ -218,7 +218,7 @@ class InsightsService:
             elif content.startswith("```"):
                 content = content[3:-3]
             
-            parsed = json.loads(content)
+            parsed = json.loads(content, strict=False)
             
             # Ingest generated pattern summary to Cognee so it remembers
             logger.info("[WEARABLE] Ingesting wearable pattern to Cognee...")

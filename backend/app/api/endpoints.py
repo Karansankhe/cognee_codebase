@@ -319,26 +319,26 @@ def clean_pdf_text(text: str) -> str:
 @router.post("/insights/pdf")
 async def download_insights_pdf(req: InsightsPDFRequest):
     try:
-        from fpdf import FPDF
+        from fpdf import FPDF, XPos, YPos
         
         class PDF(FPDF):
             def header(self):
-                self.set_font('Arial', 'B', 20)
+                self.set_font('Helvetica', 'B', 20)
                 self.set_text_color(33, 37, 41)
-                self.cell(0, 15, 'Pulse Insights Report', 0, 1, 'C')
+                self.cell(0, 15, 'Pulse Insights Report', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
                 self.set_draw_color(216, 251, 100) # Pulse green/yellow
                 self.set_line_width(1)
                 self.line(10, 25, 200, 25)
                 self.ln(10)
                 
             def chapter_title(self, title):
-                self.set_font('Arial', 'B', 14)
+                self.set_font('Helvetica', 'B', 14)
                 self.set_fill_color(240, 248, 255)
-                self.cell(0, 10, clean_pdf_text(title), 0, 1, 'L', 1)
+                self.cell(0, 10, clean_pdf_text(title), 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L', fill=True)
                 self.ln(4)
                 
             def chapter_body(self, body):
-                self.set_font('Arial', '', 11)
+                self.set_font('Helvetica', '', 11)
                 self.set_text_color(50, 50, 50)
                 self.multi_cell(0, 7, clean_pdf_text(body))
                 self.ln(6)
@@ -383,7 +383,7 @@ async def download_insights_pdf(req: InsightsPDFRequest):
         
         # Trends
         pdf.chapter_title("Temporal Trends Breakdown")
-        pdf.set_font('Arial', '', 11)
+        pdf.set_font('Helvetica', '', 11)
         if req.trends:
             for t in req.trends:
                 label = clean_pdf_text(str(t.get('label', '')))
@@ -392,12 +392,12 @@ async def download_insights_pdf(req: InsightsPDFRequest):
                 
                 # Simple bar visualization using background colors
                 pdf.set_fill_color(216, 251, 100)
-                pdf.cell(50, 8, label, 0, 0)
+                pdf.cell(50, 8, label, 0, new_x=XPos.RIGHT, new_y=YPos.TOP)
                 # draw bar
                 bar_width = val
-                pdf.cell(bar_width, 8, "", 0, 0, 'L', 1)
-                pdf.cell(100 - bar_width, 8, "", 0, 0)
-                pdf.cell(40, 8, f"{text} ({val})", 0, 1)
+                pdf.cell(bar_width, 8, "", 0, new_x=XPos.RIGHT, new_y=YPos.TOP, align='L', fill=True)
+                pdf.cell(100 - bar_width, 8, "", 0, new_x=XPos.RIGHT, new_y=YPos.TOP)
+                pdf.cell(40, 8, f"{text} ({val})", 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         
         pdf.ln(10)
         
@@ -422,17 +422,17 @@ async def download_insights_pdf(req: InsightsPDFRequest):
 @router.post("/summary/pdf")
 async def download_summary_pdf(req: SummaryPDFRequest):
     try:
-        from fpdf import FPDF
+        from fpdf import FPDF, XPos, YPos
         import re
         
         class PDF(FPDF):
             def header(self):
-                self.set_font('Arial', 'B', 16)
+                self.set_font('Helvetica', 'B', 16)
                 self.set_text_color(18, 53, 60) # Dark teal
-                self.cell(0, 10, 'Pulse Medical Record Summary', 0, 1, 'L')
-                self.set_font('Arial', 'I', 9)
+                self.cell(0, 10, 'Pulse Medical Record Summary', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
+                self.set_font('Helvetica', 'I', 9)
                 self.set_text_color(110, 110, 110)
-                self.cell(0, 5, 'Doctor-Ready Visit Summary (Generated via Cognee GraphRAG)', 0, 1, 'L')
+                self.cell(0, 5, 'Doctor-Ready Visit Summary (Generated via Cognee GraphRAG)', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
                 self.set_draw_color(18, 53, 60)
                 self.set_line_width(0.5)
                 self.line(10, 26, 200, 26)
@@ -440,19 +440,19 @@ async def download_summary_pdf(req: SummaryPDFRequest):
                 
             def footer(self):
                 self.set_y(-15)
-                self.set_font('Arial', 'I', 8)
+                self.set_font('Helvetica', 'I', 8)
                 self.set_text_color(150, 150, 150)
-                self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
+                self.cell(0, 10, f'Page {self.page_no()}', 0, new_x=XPos.RIGHT, new_y=YPos.TOP, align='C')
                 
             def section_header(self, title):
-                self.set_font('Arial', 'B', 12)
+                self.set_font('Helvetica', 'B', 12)
                 self.set_text_color(18, 53, 60)
                 self.set_fill_color(230, 245, 235) # Light mint background
-                self.cell(0, 8, clean_pdf_text(title), 0, 1, 'L', 1)
+                self.cell(0, 8, clean_pdf_text(title), 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L', fill=True)
                 self.ln(3)
                 
             def section_body(self, text):
-                self.set_font('Arial', '', 10)
+                self.set_font('Helvetica', '', 10)
                 self.set_text_color(60, 60, 60)
                 self.multi_cell(0, 6, clean_pdf_text(text))
                 self.ln(5)

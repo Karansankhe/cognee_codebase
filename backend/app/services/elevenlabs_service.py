@@ -6,71 +6,74 @@ logger = logging.getLogger(__name__)
 
 class ElevenLabsService:
     def __init__(self):
-        self.api_key = settings.elevenlabs_api_key
-        # Default voice Rachel
-        self.default_voice_id = "21m00Tcm4TlvDq8ikWAM"
+        self.api_key = settings.smallest_api_key
+        # Default voice for Smallest AI
+        self.default_voice_id = "meher"
 
     async def transcribe_audio(self, audio_content: bytes, filename: str) -> str:
         """
-        Transcribe audio content using ElevenLabs Scribe Scribe v2 API.
+        Transcribe audio content using Smallest AI Pulse API.
         """
         if not self.api_key:
-            logger.warning("[ElevenLabs] API key not configured. Using mock fallback transcription.")
-            return "This is a mock transcription because your ElevenLabs API Key is not set in the .env file."
+            logger.warning("[Smallest AI] API key not configured. Using mock fallback transcription.")
+            return "This is a mock transcription because your Smallest AI API Key is not set in the .env file."
 
-        url = "https://api.elevenlabs.io/v1/speech-to-text"
+        url = "https://waves-api.smallest.ai/api/v1/pulse/get_text"
+        params = {
+            "model": "pulse",
+            "language": "en"
+        }
+        
+        content_type = "audio/wav"
+        if filename and filename.endswith(".webm"):
+            content_type = "audio/webm"
+            
         headers = {
-            "xi-api-key": self.api_key
-        }
-        # Scribe expects model_id and file
-        files = {
-            "file": (filename, audio_content, "audio/webm")
-        }
-        data = {
-            "model_id": "scribe_v2"
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": content_type
         }
 
         try:
             async with httpx.AsyncClient(timeout=120.0) as client:
-                resp = await client.post(url, headers=headers, files=files, data=data)
+                resp = await client.post(url, params=params, headers=headers, content=audio_content)
                 resp.raise_for_status()
                 result = resp.json()
-                return result.get("text", "")
+                return result.get("transcription", "")
         except Exception as e:
-            logger.error(f"[ElevenLabs] Transcription failed: {e}")
+            logger.error(f"[Smallest AI] Transcription failed: {e}")
             raise e
 
     async def text_to_speech(self, text: str, voice_id: str = None) -> bytes:
         """
-        Generate audio from text using ElevenLabs Text to Speech API.
-        Uses the multilingual v2 model for high-quality multilingual languages.
+        Generate audio from text using Smallest AI Lightning API.
         """
         if not self.api_key:
-            logger.warning("[ElevenLabs] API key not configured. Cannot generate TTS.")
-            raise ValueError("ElevenLabs API Key is not configured.")
+            logger.warning("[Smallest AI] API key not configured. Cannot generate TTS.")
+            raise ValueError("Smallest AI API Key is not configured.")
 
         v_id = voice_id or self.default_voice_id
-        url = f"https://api.elevenlabs.io/v1/text-to-speech/{v_id}"
+        url = "https://api.smallest.ai/waves/v1/tts"
         headers = {
-            "xi-api-key": self.api_key,
+            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
         payload = {
             "text": text,
-            "model_id": "eleven_multilingual_v2",
-            "voice_settings": {
-                "stability": 0.5,
-                "similarity_boost": 0.75
-            }
+            "voice_id": v_id,
+            "model": "lightning_v3.1_pro",
+            "sample_rate": 24000,
+            "output_format": "wav"
         }
 
         try:
             async with httpx.AsyncClient(timeout=60.0) as client:
                 resp = await client.post(url, headers=headers, json=payload)
+                if resp.status_code != 200:
+                    logger.error(f"[Smallest AI] TTS status {resp.status_code}: {resp.text}")
                 resp.raise_for_status()
                 return resp.content
         except Exception as e:
-            logger.error(f"[ElevenLabs] TTS failed: {e}")
+            logger.error(f"[Smallest AI] TTS failed: {e}")
             raise e
 
 elevenlabs_service = ElevenLabsService()

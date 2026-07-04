@@ -186,13 +186,43 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const handleSymptomSubmit = () => {
     const symptom = symptomForm.symptom.trim() || "New symptom";
     const notes = symptomForm.notes.trim() || "Symptom logged from dashboard.";
+    const time = symptomForm.time.trim() || "Today, " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+    // Call backend API in background
+    void fetch("/api/v1/log-symptom", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        symptom_name: symptom,
+        logged_at: time,
+        severity: "moderate",
+        notes: notes,
+      }),
+    }).catch((err) => console.error("Failed to sync symptom to backend:", err));
 
     addEntry({
-      date: symptomForm.time.trim() || "Just now",
+      date: time,
       event: `${symptom} - ${notes}`,
       id: `symptom-${Date.now()}`,
       relationship: "supports",
       source: "Patient log",
+    });
+
+    setData((currentData) => {
+      if (!currentData) return currentData;
+      const newTimelineEntry = {
+        id: `symptom-timeline-${Date.now()}`,
+        type: "symptom" as const,
+        title: `${symptom} logged`,
+        description: notes,
+        languageCode: "EN" as const,
+        occurredAt: time,
+        source: "Patient log",
+      };
+      return {
+        ...currentData,
+        timeline: [newTimelineEntry, ...currentData.timeline],
+      };
     });
 
     setSymptomForm(initialSymptomForm);
@@ -203,13 +233,64 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     const treatment = outcomeForm.treatment.trim() || "Treatment";
     const result = outcomeForm.result.trim() || "Outcome recorded";
     const notes = outcomeForm.notes.trim() || "Follow-up result added.";
+    const time = "Today, " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+    // Call backend API in background
+    void fetch("/api/v1/log-outcome", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        treatment: treatment,
+        result: result,
+        follow_up_notes: notes,
+      }),
+    }).catch((err) => console.error("Failed to sync outcome to backend:", err));
 
     addEntry({
-      date: "Just now",
+      date: time,
       event: `${treatment} - ${result}. ${notes}`,
       id: `outcome-${Date.now()}`,
       relationship: "improved",
       source: "Treatment outcome",
+    });
+
+    setData((currentData) => {
+      if (!currentData) return currentData;
+      const newTimelineEntry = {
+        id: `outcome-timeline-${Date.now()}`,
+        type: "treatment" as const,
+        title: `${treatment} and rest recorded`,
+        description: `${result}. ${notes}`,
+        languageCode: "EN" as const,
+        occurredAt: time,
+        source: "Treatment outcome",
+      };
+
+      const resultLower = result.toLowerCase();
+      const isHelped =
+        resultLower.includes("improved") ||
+        resultLower.includes("better") ||
+        resultLower.includes("helped") ||
+        resultLower.includes("resolved") ||
+        resultLower.includes("effective");
+
+      const prevEffectiveness = currentData.activePattern.treatmentEffectiveness;
+      const helpedAttempts = prevEffectiveness.helpedAttempts + (isHelped ? 1 : 0);
+      const totalAttempts = prevEffectiveness.totalAttempts + 1;
+      const score = Math.round((helpedAttempts / totalAttempts) * 100);
+
+      return {
+        ...currentData,
+        timeline: [newTimelineEntry, ...currentData.timeline],
+        activePattern: {
+          ...currentData.activePattern,
+          treatmentEffectiveness: {
+            helpedAttempts,
+            totalAttempts,
+            score,
+          },
+        },
+      };
     });
 
     setOutcomeForm(initialOutcomeForm);
