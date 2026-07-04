@@ -184,42 +184,54 @@ async def query_graph(req: QueryRequest):
         graph_answer = answer_dict.get("graph_answer", "")
         elapsed = time.perf_counter() - t0
 
+        from langchain_core.messages import SystemMessage, HumanMessage
+        import json
+
+        # Always synthesize the answer to ensure internal IDs are scrubbed
+        sys_content = (
+            "You are a medical AI assistant. Your task is to provide a clean, natural, and conversational "
+            "answer to the user based on the historical knowledge graph answer. "
+            "CRITICAL INSTRUCTION: NEVER include internal database IDs, UUIDs, or node identifiers (e.g., 'Medical ID', 'Node ID') in your response. "
+        )
+
         if req.live_context:
             # Clean and limit wearable metrics to prevent token overflow on Groq
             metrics = req.live_context.get("synced_metrics", [])
             if isinstance(metrics, list) and len(metrics) > 5:
                 req.live_context["synced_metrics"] = metrics[-5:]
-
-            from langchain_core.messages import SystemMessage, HumanMessage
-            import json
-            sys_msg = SystemMessage(
-                content=(
-                    "You are a medical AI assistant. Combine the historical knowledge graph answer with the current "
-                    "real-time patient status (live context) to answer the user's question. "
-                    "Be precise, professional, and prioritize live metrics (heart rate, steps, recovery, sleep today, location) "
-                    "if the question is about current status, while using the graph for historical queries. "
-                    "If the live context is empty or doesn't contain relevant info, rely on the graph answer."
-                )
+            
+            sys_content += (
+                "Combine the historical knowledge graph answer with the current real-time patient status (live context) to answer the user's question. "
+                "Be precise, professional, and prioritize live metrics (heart rate, steps, recovery, sleep today, location) "
+                "if the question is about current status, while using the graph for historical queries. "
             )
-            hum_msg = HumanMessage(
-                content=(
-                    f"User Question: {req.question}\n\n"
-                    f"Historical Knowledge Graph Answer: {graph_answer}\n\n"
-                    f"Current Live Context:\n{json.dumps(req.live_context, indent=2)}\n\n"
-                    "Provide a clean, natural, and helpful clinical response."
-                )
+            hum_content = (
+                f"User Question: {req.question}\n\n"
+                f"Historical Knowledge Graph Answer: {graph_answer}\n\n"
+                f"Current Live Context:\n{json.dumps(req.live_context, indent=2)}\n\n"
+                "Provide a clean, natural, and helpful clinical response. Do NOT include any IDs."
             )
-            try:
-                response = insights_service.llm.invoke([sys_msg, hum_msg])
-                synthesized_answer = response.content.strip()
-                return {"graph_answer": synthesized_answer}
-            except Exception as llm_e:
-                logger.error(f"[QUERY] LLM synthesis failed: {llm_e}")
-                return {"graph_answer": graph_answer}
+        else:
+            hum_content = (
+                f"User Question: {req.question}\n\n"
+                f"Historical Knowledge Graph Answer: {graph_answer}\n\n"
+                "Provide a clean, natural, and helpful clinical response. Do NOT include any internal IDs."
+            )
 
-        answer_preview = str(graph_answer)[:120]
-        logger.info(f"[QUERY] ✓ Answered in {elapsed:.1f}s | preview: '{answer_preview}...'")
-        return {"graph_answer": graph_answer}
+        sys_msg = SystemMessage(content=sys_content)
+        hum_msg = HumanMessage(content=hum_content)
+
+        try:
+            response = insights_service.llm.invoke([sys_msg, hum_msg])
+            synthesized_answer = response.content.strip()
+            answer_preview = synthesized_answer[:120]
+            logger.info(f"[QUERY] ✓ Answered in {time.perf_counter() - t0:.1f}s | preview: '{answer_preview}...'")
+            return {"graph_answer": synthesized_answer}
+        except Exception as llm_e:
+            logger.error(f"[QUERY] LLM synthesis failed: {llm_e}")
+            answer_preview = str(graph_answer)[:120]
+            logger.info(f"[QUERY] ✓ Answered (raw fallback) in {time.perf_counter() - t0:.1f}s | preview: '{answer_preview}...'")
+            return {"graph_answer": graph_answer}
 
     except Exception as e:
         logger.error(f"[QUERY] ✗ Error for '{req.question}': {e}", exc_info=True)
