@@ -112,9 +112,9 @@ export function GraphPage() {
 
         {/* Chat UI Card */}
         <Card className="flex-1 flex flex-col bg-white/70 overflow-hidden min-h-0">
-          <CardHeader 
-            title="Natural Language Query" 
-            eyebrow="Interactive Memory" 
+          <CardHeader
+            title="Natural Language Query"
+            eyebrow="Interactive Memory"
             action={
               <div className="flex items-center gap-1.5 rounded-full bg-pulse-mint/20 px-3 py-1 text-xs font-semibold text-pulse-ink">
                 <Brain className="h-3.5 w-3.5" />
@@ -123,14 +123,14 @@ export function GraphPage() {
             }
           />
           <CardBody className="flex-1 flex flex-col justify-between overflow-hidden p-5 gap-4">
-            
+
             {isLandingState ? (
               /* Gemini style landing view */
               <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full gap-6 select-none">
                 <h2 className="text-3xl font-light text-pulse-ink/90 text-center font-sans tracking-tight">
                   Ready when you are.
                 </h2>
-                
+
                 {/* Search Bar Input Pill */}
                 <form
                   onSubmit={(e) => {
@@ -142,7 +142,7 @@ export function GraphPage() {
                   <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
                     <Plus className="h-5 w-5" />
                   </button>
-                  
+
                   <input
                     type="text"
                     placeholder="Ask anything"
@@ -150,11 +150,11 @@ export function GraphPage() {
                     onChange={(e) => setInputValue(e.target.value)}
                     className="flex-1 bg-transparent text-sm text-pulse-ink outline-none placeholder:text-pulse-muted/80"
                   />
-                  
+
                   <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
                     <Mic className="h-5 w-5" />
                   </button>
-                  
+
                   <button
                     type="submit"
                     className="grid h-9 w-9 place-items-center rounded-full bg-black text-white hover:bg-pulse-ink transition shadow-sm cursor-pointer"
@@ -220,29 +220,26 @@ export function GraphPage() {
                   {messages.map((msg, idx) => (
                     <div
                       key={idx}
-                      className={`flex items-start gap-3 max-w-[85%] ${
-                        msg.sender === "user" ? "ml-auto flex-row-reverse" : ""
-                      }`}
+                      className={`flex items-start gap-3 max-w-[85%] ${msg.sender === "user" ? "ml-auto flex-row-reverse" : ""
+                        }`}
                     >
                       <div
-                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-white ${
-                          msg.sender === "user" ? "bg-pulse-ink" : "bg-pulse-muted"
-                        }`}
+                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-white ${msg.sender === "user" ? "bg-pulse-ink" : "bg-pulse-muted"
+                          }`}
                       >
                         {msg.sender === "user" ? <User className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
                       </div>
                       <div
-                        className={`rounded-[20px] px-4 py-2.5 text-sm leading-6 shadow-sm ${
-                          msg.sender === "user"
+                        className={`rounded-[20px] px-4 py-2.5 text-sm leading-6 shadow-sm ${msg.sender === "user"
                             ? "bg-pulse-ink text-white"
                             : "bg-pulse-mint/20 border border-pulse-green/20 text-pulse-ink"
-                        }`}
+                          }`}
                       >
                         <p className="whitespace-pre-wrap">{msg.text}</p>
                       </div>
                     </div>
                   ))}
-                  
+
                   {isQuerying && (
                     <div className="flex items-start gap-3 max-w-[85%]">
                       <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-pulse-muted text-white">
@@ -269,7 +266,7 @@ export function GraphPage() {
                     <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
                       <Plus className="h-5 w-5" />
                     </button>
-                    
+
                     <input
                       type="text"
                       placeholder="Ask anything..."
@@ -278,11 +275,11 @@ export function GraphPage() {
                       disabled={isQuerying}
                       className="flex-1 bg-transparent text-sm text-pulse-ink outline-none placeholder:text-pulse-muted"
                     />
-                    
+
                     <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
                       <Mic className="h-5 w-5" />
                     </button>
-                    
+
                     <button
                       type="submit"
                       disabled={isQuerying || !inputValue.trim()}

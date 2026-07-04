@@ -3,6 +3,8 @@ import tempfile
 import shutil
 import logging
 import time
+import asyncio
+from typing import Optional, Any
 from fastapi import APIRouter, UploadFile, File, HTTPException, Request, Form
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -13,14 +15,16 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+
 class QueryRequest(BaseModel):
     question: str
+    live_context: Optional[dict] = None
 
 class InsightsPDFRequest(BaseModel):
-    description: str
-    detailed_report: str = ""
-    weekly_plan: str = ""
-    trends: list
+    description: Optional[Any] = ""
+    detailed_report: Optional[Any] = ""
+    weekly_plan: Optional[Any] = ""
+    trends: Optional[list] = []
 
 class SummaryPDFRequest(BaseModel):
     summary: str
@@ -113,15 +117,38 @@ class OnboardingQuizAnswers(BaseModel):
 async def remember_onboarding(req: OnboardingQuizAnswers):
     logger.info("[ONBOARDING] Remembering onboarding answers...")
     try:
-        # Format quiz answers as a summary text
         report = "Patient Onboarding Quiz Baseline Survey\n"
         report += "========================================\n\n"
+        answers_dict = {}
         for idx, qa in enumerate(req.answers):
-            q_text = qa.get("question", f"Question {idx+1}")
+            q_text = qa.get("question", "")
             a_text = qa.get("answer", "No answer provided")
             report += f"Q{idx+1}: {q_text}\n"
             report += f"A{idx+1}: {a_text}\n\n"
-        
+            
+            # Map key lifestyle questions for the narrative
+            if "sleep" in q_text.lower():
+                answers_dict["sleep"] = a_text
+            elif "water" in q_text.lower() or "hydration" in q_text.lower():
+                answers_dict["water"] = a_text
+            elif "exercise" in q_text.lower():
+                answers_dict["exercise"] = a_text
+            elif "trigger" in q_text.lower():
+                answers_dict["trigger"] = a_text
+
+        # Add explicit clinical narrative to guarantee Cognee extracts LifestyleFactors
+        report += "CLINICAL LIFESTYLE FACTORS & HABITS NARRATIVE\n"
+        report += "---------------------------------------------\n"
+        if "sleep" in answers_dict:
+            report += f"The patient's average sleep duration is a lifestyle factor: {answers_dict['sleep']}.\n"
+        if "water" in answers_dict:
+            report += f"The patient's daily water intake is a lifestyle factor: {answers_dict['water']}.\n"
+        if "exercise" in answers_dict:
+            report += f"The patient's exercise routine is a lifestyle factor: {answers_dict['exercise']}.\n"
+        if "trigger" in answers_dict:
+            report += f"The suspected symptom trigger is: {answers_dict['trigger']}.\n"
+        report += "These lifestyle factors are documented as affecting the patient's health and correlate with symptoms.\n\n"
+
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt", encoding="utf-8") as tmp:
             tmp.write(report)
             tmp_path = tmp.name
@@ -130,6 +157,8 @@ async def remember_onboarding(req: OnboardingQuizAnswers):
         logger.info(f"[ONBOARDING] Ingesting survey file: {tmp_path}")
         await graph_service.process_pdf(tmp_path, "patient_onboarding_survey.txt")
         os.unlink(tmp_path)
+        # Explicit memify enrichment for the onboarding quiz baseline survey data run in background
+        asyncio.create_task(graph_service.memify(data=report))
         return {"status": "success"}
     except Exception as e:
         logger.error(f"[ONBOARDING] Failed to save survey: {e}", exc_info=True)
@@ -142,11 +171,45 @@ async def query_graph(req: QueryRequest):
     try:
         t0 = time.perf_counter()
         answer_dict = await graph_service.query(req.question)
+        graph_answer = answer_dict.get("graph_answer", "")
         elapsed = time.perf_counter() - t0
 
-        answer_preview = str(answer_dict.get("graph_answer", ""))[:120]
+        if req.live_context:
+            # Clean and limit wearable metrics to prevent token overflow on Groq
+            metrics = req.live_context.get("synced_metrics", [])
+            if isinstance(metrics, list) and len(metrics) > 5:
+                req.live_context["synced_metrics"] = metrics[-5:]
+
+            from langchain_core.messages import SystemMessage, HumanMessage
+            import json
+            sys_msg = SystemMessage(
+                content=(
+                    "You are a medical AI assistant. Combine the historical knowledge graph answer with the current "
+                    "real-time patient status (live context) to answer the user's question. "
+                    "Be precise, professional, and prioritize live metrics (heart rate, steps, recovery, sleep today, location) "
+                    "if the question is about current status, while using the graph for historical queries. "
+                    "If the live context is empty or doesn't contain relevant info, rely on the graph answer."
+                )
+            )
+            hum_msg = HumanMessage(
+                content=(
+                    f"User Question: {req.question}\n\n"
+                    f"Historical Knowledge Graph Answer: {graph_answer}\n\n"
+                    f"Current Live Context:\n{json.dumps(req.live_context, indent=2)}\n\n"
+                    "Provide a clean, natural, and helpful clinical response."
+                )
+            )
+            try:
+                response = insights_service.llm.invoke([sys_msg, hum_msg])
+                synthesized_answer = response.content.strip()
+                return {"graph_answer": synthesized_answer}
+            except Exception as llm_e:
+                logger.error(f"[QUERY] LLM synthesis failed: {llm_e}")
+                return {"graph_answer": graph_answer}
+
+        answer_preview = str(graph_answer)[:120]
         logger.info(f"[QUERY] ✓ Answered in {elapsed:.1f}s | preview: '{answer_preview}...'")
-        return answer_dict
+        return {"graph_answer": graph_answer}
 
     except Exception as e:
         logger.error(f"[QUERY] ✗ Error for '{req.question}': {e}", exc_info=True)
@@ -234,6 +297,25 @@ async def sync_wearable():
         logger.error(f"[WEARABLE] Error generating wearable pattern: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+def clean_pdf_text(text: str) -> str:
+    if not text:
+        return ""
+    # Map common unicode characters that FPDF's default fonts can't encode to ASCII/Latin-1
+    replacements = {
+        "→": "->",
+        "•": "-",
+        "…": "...",
+        "“": '"',
+        "”": '"',
+        "‘": "'",
+        "’": "'",
+        "–": "-",
+        "—": "-",
+    }
+    for k, v in replacements.items():
+        text = text.replace(k, v)
+    return text.encode("latin-1", "replace").decode("latin-1")
+
 @router.post("/insights/pdf")
 async def download_insights_pdf(req: InsightsPDFRequest):
     try:
@@ -252,50 +334,70 @@ async def download_insights_pdf(req: InsightsPDFRequest):
             def chapter_title(self, title):
                 self.set_font('Arial', 'B', 14)
                 self.set_fill_color(240, 248, 255)
-                self.cell(0, 10, title, 0, 1, 'L', 1)
+                self.cell(0, 10, clean_pdf_text(title), 0, 1, 'L', 1)
                 self.ln(4)
                 
             def chapter_body(self, body):
                 self.set_font('Arial', '', 11)
                 self.set_text_color(50, 50, 50)
-                # handle utf-8 by encoding and decoding
-                body = body.encode('latin-1', 'replace').decode('latin-1')
-                self.multi_cell(0, 7, body)
+                self.multi_cell(0, 7, clean_pdf_text(body))
                 self.ln(6)
+
+        def stringify_field(val: Any) -> str:
+            if not val:
+                return ""
+            if isinstance(val, dict):
+                lines = []
+                for k, v in val.items():
+                    if isinstance(v, dict):
+                        lines.append(f"{k}:")
+                        for sub_k, sub_v in v.items():
+                            lines.append(f"  - {sub_k}: {sub_v}")
+                    else:
+                        lines.append(f"{k}: {v}")
+                return "\n".join(lines)
+            if isinstance(val, list):
+                return "\n".join(str(x) for x in val)
+            return str(val)
+
+        desc = stringify_field(req.description)
+        report = stringify_field(req.detailed_report)
+        plan = stringify_field(req.weekly_plan)
 
         pdf = PDF()
         pdf.add_page()
         
         # Summary
         pdf.chapter_title("Key Insight")
-        pdf.chapter_body(req.description)
+        pdf.chapter_body(desc)
         
         # Detailed Report
-        if req.detailed_report:
+        if report:
             pdf.chapter_title("Detailed Analysis")
-            pdf.chapter_body(req.detailed_report)
+            pdf.chapter_body(report)
             
         # Weekly Plan
-        if req.weekly_plan:
+        if plan:
             pdf.chapter_title("Actionable Weekly Plan")
-            pdf.chapter_body(req.weekly_plan)
+            pdf.chapter_body(plan)
         
         # Trends
         pdf.chapter_title("Temporal Trends Breakdown")
         pdf.set_font('Arial', '', 11)
-        for t in req.trends:
-            label = str(t.get('label', ''))
-            text = str(t.get('text', ''))
-            val = t.get('value', 0)
-            
-            # Simple bar visualization using background colors
-            pdf.set_fill_color(216, 251, 100)
-            pdf.cell(50, 8, label, 0, 0)
-            # draw bar
-            bar_width = val
-            pdf.cell(bar_width, 8, "", 0, 0, 'L', 1)
-            pdf.cell(100 - bar_width, 8, "", 0, 0)
-            pdf.cell(40, 8, f"{text} ({val})", 0, 1)
+        if req.trends:
+            for t in req.trends:
+                label = clean_pdf_text(str(t.get('label', '')))
+                text = clean_pdf_text(str(t.get('text', '')))
+                val = t.get('value', 0)
+                
+                # Simple bar visualization using background colors
+                pdf.set_fill_color(216, 251, 100)
+                pdf.cell(50, 8, label, 0, 0)
+                # draw bar
+                bar_width = val
+                pdf.cell(bar_width, 8, "", 0, 0, 'L', 1)
+                pdf.cell(100 - bar_width, 8, "", 0, 0)
+                pdf.cell(40, 8, f"{text} ({val})", 0, 1)
         
         pdf.ln(10)
         
@@ -346,14 +448,13 @@ async def download_summary_pdf(req: SummaryPDFRequest):
                 self.set_font('Arial', 'B', 12)
                 self.set_text_color(18, 53, 60)
                 self.set_fill_color(230, 245, 235) # Light mint background
-                self.cell(0, 8, title, 0, 1, 'L', 1)
+                self.cell(0, 8, clean_pdf_text(title), 0, 1, 'L', 1)
                 self.ln(3)
                 
             def section_body(self, text):
                 self.set_font('Arial', '', 10)
                 self.set_text_color(60, 60, 60)
-                text_latin = text.encode('latin-1', 'replace').decode('latin-1')
-                self.multi_cell(0, 6, text_latin)
+                self.multi_cell(0, 6, clean_pdf_text(text))
                 self.ln(5)
 
         pdf = PDF()
@@ -413,5 +514,36 @@ async def get_graph():
         return graph_data
     except Exception as e:
         logger.error(f"[GRAPH] ✗ Error fetching graph: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+class TTSRequest(BaseModel):
+    text: str
+    voice_id: Optional[str] = None
+
+from app.services.elevenlabs_service import elevenlabs_service
+from fastapi.responses import StreamingResponse
+import io
+
+@router.post("/text-to-speech")
+async def text_to_speech_endpoint(req: TTSRequest):
+    try:
+        audio_data = await elevenlabs_service.text_to_speech(req.text, req.voice_id)
+        return StreamingResponse(io.BytesIO(audio_data), media_type="audio/mpeg")
+    except ValueError as val_e:
+        raise HTTPException(status_code=400, detail=str(val_e))
+    except Exception as e:
+        if "402" in str(e):
+            raise HTTPException(status_code=402, detail="ElevenLabs character quota exhausted (402 Payment Required). Please verify your account limits or plan.")
+        logger.error(f"[TTS] Error generating speech: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/speech-to-text")
+async def speech_to_text_endpoint(file: UploadFile = File(...)):
+    try:
+        audio_content = await file.read()
+        transcription = await elevenlabs_service.transcribe_audio(audio_content, file.filename)
+        return {"text": transcription}
+    except Exception as e:
+        logger.error(f"[STT] Error transcribing speech: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { UploadCloud, FileText, Loader2, CheckCircle, AlertCircle, Brain, ArrowRight, ArrowLeft } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { UploadCloud, FileText, Loader2, CheckCircle, AlertCircle, ArrowRight, ArrowLeft } from "lucide-react";
+import pulseLogo from "../../assets/pulse-logo.png";
 
 interface QuizQuestion {
   question: string;
@@ -52,10 +53,10 @@ const quizQuestions: QuizQuestion[] = [
 
 export function UploadPage() {
   const navigate = useNavigate();
-  
+
   // Navigation steps: "quiz" | "upload"
   const [step, setStep] = useState<"quiz" | "upload">("quiz");
-  
+
   // Onboarding quiz state
   const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<string[]>(new Array(quizQuestions.length).fill(""));
@@ -70,7 +71,7 @@ export function UploadPage() {
   const [waterIntake, setWaterIntake] = useState("");
   const [sleepAmount, setSleepAmount] = useState("");
   const [otherHabits, setOtherHabits] = useState("");
-  
+
   const [patientName, setPatientName] = useState("");
   const [patientAge, setPatientAge] = useState("");
   const [patientGender, setPatientGender] = useState("");
@@ -92,7 +93,7 @@ export function UploadPage() {
   const handleQuizSubmit = async () => {
     setIsSavingQuiz(true);
     setError(null);
-    
+
     // Format question-answer pairs
     const formattedAnswers = quizQuestions.map((q, idx) => ({
       question: q.question,
@@ -109,7 +110,7 @@ export function UploadPage() {
       if (!response.ok) {
         throw new Error("Failed to save onboarding survey answers in Cognee");
       }
-      
+
       // Advance to upload page
       setStep("upload");
     } catch (err: any) {
@@ -167,7 +168,7 @@ export function UploadPage() {
     setError(null);
     const formData = new FormData();
     formData.append("file", file);
-    
+
     const insightsFormData = new FormData();
     insightsFormData.append("location", location);
     insightsFormData.append("water_intake", waterIntake);
@@ -232,9 +233,13 @@ export function UploadPage() {
           /* Step 1: Onboarding Quiz Wizard */
           <div className="w-full max-w-lg">
             <div className="mb-6 flex flex-col items-center gap-2 text-center">
-              <div className="grid h-10 w-10 place-items-center rounded-full bg-pulse-ink text-white shadow-pulse">
-                <Brain className="h-5 w-5" />
-              </div>
+              <Link to="/" aria-label="Pulse home">
+                <img
+                  alt=""
+                  className="h-11 w-11 rounded-2xl object-contain shadow-pulse transition hover:scale-105"
+                  src={pulseLogo}
+                />
+              </Link>
               <div>
                 <p className="text-xl font-bold tracking-tight">Pulse Onboarding</p>
                 <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-pulse-muted">
@@ -249,12 +254,12 @@ export function UploadPage() {
                 <span>ONBOARDING PROFILE</span>
                 <span>Question {currentQuizIdx + 1} of {quizQuestions.length}</span>
               </div>
-              
+
               {/* Progress bar */}
               <div className="h-1.5 w-full bg-pulse-line rounded-full overflow-hidden mb-6">
-                <div 
-                  className="h-full bg-pulse-green transition-all duration-300" 
-                  style={{ width: `${progressPercentage}%` }} 
+                <div
+                  className="h-full bg-pulse-green transition-all duration-300"
+                  style={{ width: `${progressPercentage}%` }}
                 />
               </div>
 
@@ -336,9 +341,13 @@ export function UploadPage() {
           <div className="w-full max-w-5xl">
             {/* Header info */}
             <div className="mb-6 flex flex-col items-center gap-2 text-center">
-              <div className="grid h-10 w-10 place-items-center rounded-full bg-pulse-ink text-white shadow-pulse">
-                <Brain className="h-5 w-5" />
-              </div>
+              <Link to="/" aria-label="Pulse home">
+                <img
+                  alt=""
+                  className="h-11 w-11 rounded-2xl object-contain shadow-pulse transition hover:scale-105"
+                  src={pulseLogo}
+                />
+              </Link>
               <div>
                 <p className="text-xl font-bold tracking-tight">Onboarding complete</p>
                 <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-pulse-muted">
@@ -357,7 +366,7 @@ export function UploadPage() {
 
             {/* Two Column Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-              
+
               {/* Left Column: Patient Details */}
               <div className="rounded-[24px] border border-pulse-line bg-white/60 p-6 shadow-pulse backdrop-blur-sm space-y-4">
                 <div>

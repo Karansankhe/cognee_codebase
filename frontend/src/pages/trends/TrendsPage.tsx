@@ -54,11 +54,11 @@ export function TrendsPage() {
       });
       if (!response.ok) throw new Error("Sync failed");
       const result = await response.json();
-      
+
       // Save raw metrics
       localStorage.setItem("pulse_synced_metrics", JSON.stringify(result.metrics));
       setMetrics(result.metrics);
-      
+
       // Save pattern back in case they return to dashboard
       const cachedDashboard = localStorage.getItem("pulse_insights");
       if (cachedDashboard) {
@@ -108,40 +108,40 @@ export function TrendsPage() {
   }
 
   // 3. Sleep score ring percentages
-  const avgSleepScore = hasData 
+  const avgSleepScore = hasData
     ? Math.round(metrics!.reduce((acc, m) => acc + m.SleepScore, 0) / metrics!.length)
     : 0;
   const prevSleepScore = hasData ? Math.round(avgSleepScore * 0.95) : 0; // mock comparative score
 
   // 4. Activity breakdowns (Horizontal bars)
-  const avgActiveMins = hasData 
+  const avgActiveMins = hasData
     ? Math.round(metrics!.reduce((acc, m) => acc + m.ActiveZoneMinutes, 0) / metrics!.length)
     : 0;
   const activePercentage = Math.min(Math.round((avgActiveMins / 90) * 100), 100);
 
-  const avgSleepDur = hasData 
+  const avgSleepDur = hasData
     ? (metrics!.reduce((acc, m) => acc + m.SleepDuration, 0) / metrics!.length).toFixed(1)
     : "0.0";
   const sleepPercentage = Math.min(Math.round((parseFloat(avgSleepDur) / 8.0) * 100), 100);
 
-  const avgStress = hasData 
+  const avgStress = hasData
     ? Math.round(metrics!.reduce((acc, m) => acc + m.StressScore, 0) / metrics!.length)
     : 0;
   const stressPercentage = Math.min(Math.round((avgStress / 100) * 100), 100);
 
   // 5. Provider productivity (Metrics metrics overview)
-  const avgSteps = hasData 
+  const avgSteps = hasData
     ? Math.round(metrics!.reduce((acc, m) => acc + m.Steps, 0) / metrics!.length)
     : 0;
-  const avgCalories = hasData 
+  const avgCalories = hasData
     ? Math.round(metrics!.reduce((acc, m) => acc + m.CaloriesBurned, 0) / metrics!.length)
     : 0;
-  const totalDistance = hasData 
+  const totalDistance = hasData
     ? (metrics!.reduce((acc, m) => acc + m.DistanceTraveled, 0) / metrics!.length).toFixed(1)
     : "0.0";
 
   // 6. SpO2 ring gauge
-  const avgSpO2 = hasData 
+  const avgSpO2 = hasData
     ? (metrics!.reduce((acc, m) => acc + m.SpO2, 0) / metrics!.length).toFixed(1)
     : "0.0";
   const spo2Percentage = hasData ? Math.round(parseFloat(avgSpO2)) : 0;
@@ -401,7 +401,7 @@ export function TrendsPage() {
                       <span className="text-xl font-black text-pulse-ink">{avgSteps.toLocaleString()}</span>
                     </div>
                   </div>
-                  
+
                   <div className="rounded-[18px] bg-[#fff6cc] p-4 shadow-sm transition hover:-translate-y-1">
                     <span className="text-xs font-semibold uppercase tracking-wider text-pulse-muted block">Burn Rate</span>
                     <div className="flex items-center gap-1 mt-1">
@@ -423,7 +423,7 @@ export function TrendsPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="mt-4 flex items-center gap-2 border-t border-pulse-line/60 pt-3 text-xs text-pulse-muted">
                   <Info className="h-3.5 w-3.5 shrink-0" />
                   Calculated from 100 simulated log points.
