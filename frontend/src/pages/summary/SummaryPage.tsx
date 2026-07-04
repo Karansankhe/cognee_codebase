@@ -124,7 +124,7 @@ export function SummaryPage() {
       <AppShell activePage="Summary" onNavigate={handleNavigate}>
         <div className="grid min-h-screen place-items-center px-5">
           <div className="rounded-lg border border-pulse-line bg-white px-5 py-4 shadow-pulse">
-            <p className="text-sm font-bold text-pulse-muted">
+            <p className="text-sm font-normal text-pulse-muted">
               Preparing summary...
             </p>
           </div>
@@ -147,17 +147,17 @@ export function SummaryPage() {
       <main className="h-[calc(100vh-2rem)] overflow-y-auto px-4 pb-5 pt-3 sm:px-6">
         <div className="mb-4 flex flex-col gap-3 border-b border-pulse-line/60 pb-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-pulse-muted">
+            <p className="text-[10px] font-normal uppercase tracking-[0.16em] text-pulse-muted">
               Doctor-ready summary
             </p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-normal text-pulse-ink">
+            <h1 className="mt-1 text-3xl font-normal tracking-normal text-pulse-ink">
               Visit Summary
             </h1>
-            <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-pulse-line bg-white/75 px-3 py-1.5 text-xs font-bold text-pulse-ink shadow-sm">
+            <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-pulse-line bg-white/75 px-3 py-1.5 text-xs font-normal text-pulse-ink shadow-sm">
               <span className="h-2 w-2 rounded-full bg-pulse-green" />
               Patient: {data.patient.name}
             </div>
-            <p className="mt-1 max-w-2xl text-sm font-medium leading-6 text-pulse-muted">
+            <p className="mt-1 max-w-2xl text-sm font-normal leading-6 text-pulse-muted">
               A compact report built from the Pulse memory graph, wearable signals,
               treatment outcomes, and cited evidence.
             </p>
@@ -165,12 +165,12 @@ export function SummaryPage() {
 
           <div className="flex flex-wrap items-center gap-2">
             {shareStatus ? (
-              <span className="rounded-full bg-pulse-green/35 px-3 py-2 text-xs font-bold text-pulse-ink">
+              <span className="rounded-full bg-pulse-green/35 px-3 py-2 text-xs font-normal text-pulse-ink">
                 {shareStatus}
               </span>
             ) : null}
             <button
-              className="inline-flex items-center gap-2 rounded-full border border-pulse-line bg-white/80 px-4 py-2 text-xs font-bold shadow-sm transition hover:border-pulse-green hover:bg-pulse-mint/30"
+              className="inline-flex items-center gap-2 rounded-full border border-pulse-line bg-white/80 px-4 py-2 text-xs font-normal shadow-sm transition hover:border-pulse-green hover:bg-pulse-mint/30"
               onClick={handleShare}
               type="button"
             >
@@ -178,7 +178,7 @@ export function SummaryPage() {
               Share
             </button>
             <button
-              className="inline-flex items-center gap-2 rounded-full bg-pulse-ink px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 rounded-full bg-pulse-ink px-4 py-2 text-xs font-normal text-white shadow-sm transition hover:-translate-y-0.5"
               onClick={handleExport}
               type="button"
             >
@@ -193,15 +193,15 @@ export function SummaryPage() {
             <Card className="overflow-hidden bg-white/80">
               <div className="grid gap-0 lg:grid-cols-[1fr_260px]">
                 <div className="p-5">
-                  <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-pulse-green/35 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em]">
+                  <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-pulse-green/35 px-3 py-1.5 text-[10px] font-normal uppercase tracking-[0.12em]">
                     <Sparkles className="h-3.5 w-3.5" />
                     Ready for appointment
                   </div>
-                  <h2 className="text-2xl font-black leading-tight text-pulse-ink">
+                  <h2 className="text-2xl font-normal leading-tight text-pulse-ink">
                     {pattern.symptom} pattern linked to{" "}
                     {pattern.triggerCandidates.slice(0, 2).join(" and ")}.
                   </h2>
-                  <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-pulse-muted">
+                  <p className="mt-3 max-w-2xl text-sm font-normal leading-6 text-pulse-muted">
                     {pattern.summary}
                   </p>
 
@@ -227,11 +227,11 @@ export function SummaryPage() {
                         className="rounded-[18px] border border-pulse-line bg-white/75 p-4"
                         key={item.label}
                       >
-                        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-pulse-muted">
+                        <p className="text-[10px] font-normal uppercase tracking-[0.12em] text-pulse-muted">
                           {item.label}
                         </p>
-                        <p className="mt-2 text-xl font-black">{item.value}</p>
-                        <p className="mt-1 text-xs font-semibold text-pulse-muted">
+                        <p className="mt-2 text-xl font-normal">{item.value}</p>
+                        <p className="mt-1 text-xs font-normal text-pulse-muted">
                           {item.copy}
                         </p>
                       </div>
@@ -240,12 +240,12 @@ export function SummaryPage() {
                 </div>
 
                 <div className="border-t border-pulse-line bg-pulse-mint/30 p-5 lg:border-l lg:border-t-0">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-pulse-muted">
+                  <p className="text-[10px] font-normal uppercase tracking-[0.16em] text-pulse-muted">
                     Report readiness
                   </p>
                   <div className="mt-4 space-y-3">
                     {readyChecks.map((check) => (
-                      <div className="flex items-center gap-2 text-sm font-bold" key={check}>
+                      <div className="flex items-center gap-2 text-sm font-normal" key={check}>
                         <CheckCircle2 className="h-4 w-4 text-[#37c77f]" />
                         {check}
                       </div>
@@ -268,8 +268,8 @@ export function SummaryPage() {
                   key={note.title}
                 >
                   <CardBody className="p-4">
-                    <p className="text-sm font-black">{note.title}</p>
-                    <p className="mt-2 text-sm font-medium leading-6 text-pulse-muted">
+                    <p className="text-sm font-normal">{note.title}</p>
+                    <p className="mt-2 text-sm font-normal leading-6 text-pulse-muted">
                       {note.copy}
                     </p>
                   </CardBody>
@@ -282,7 +282,7 @@ export function SummaryPage() {
                 eyebrow="Evidence timeline"
                 title="Cited memories behind the summary"
                 action={
-                  <span className="rounded-full bg-pulse-green/30 px-3 py-1.5 text-xs font-bold">
+                  <span className="rounded-full bg-pulse-green/30 px-3 py-1.5 text-xs font-normal">
                     {data.citations.length} sources
                   </span>
                 }
@@ -295,16 +295,16 @@ export function SummaryPage() {
                       key={item.id}
                     >
                       <div>
-                        <p className="text-xs font-black text-pulse-ink">{item.date}</p>
-                        <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.12em] text-pulse-muted">
+                        <p className="text-xs font-normal text-pulse-ink">{item.date}</p>
+                        <p className="mt-1 text-[10px] font-normal uppercase tracking-[0.12em] text-pulse-muted">
                           {item.source}
                         </p>
                       </div>
-                      <p className="text-sm font-medium leading-6 text-pulse-muted">
+                      <p className="text-sm font-normal leading-6 text-pulse-muted">
                         {item.event}
                       </p>
                       <span
-                        className={`self-start rounded-full px-3 py-1 text-center text-[10px] font-black uppercase ${
+                        className={`self-start rounded-full px-3 py-1 text-center text-[10px] font-normal uppercase ${
                           item.relationship === "improved"
                             ? "bg-pulse-green/35"
                             : item.relationship === "contradicts"
@@ -326,16 +326,16 @@ export function SummaryPage() {
               <CardBody className="p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/55">
+                    <p className="text-[10px] font-normal uppercase tracking-[0.16em] text-white/55">
                       Visit note
                     </p>
-                    <h2 className="mt-2 text-2xl font-black leading-tight">
+                    <h2 className="mt-2 text-2xl font-normal leading-tight">
                       Bring this to the next appointment.
                     </h2>
                   </div>
                   <FileHeart className="h-8 w-8 shrink-0 text-pulse-green" />
                 </div>
-                <p className="mt-4 text-sm font-medium leading-6 text-white/70">
+                <p className="mt-4 text-sm font-normal leading-6 text-white/70">
                   {pattern.recommendation ?? pattern.treatmentMemory}
                 </p>
               </CardBody>
@@ -347,13 +347,13 @@ export function SummaryPage() {
                 <div className="space-y-3">
                   {pattern.triggerCandidates.map((trigger, index) => (
                     <div className="flex items-center gap-3" key={trigger}>
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-pulse-green/40 text-xs font-black">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-pulse-green/40 text-xs font-normal">
                         {index + 1}
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex items-center justify-between gap-3">
-                          <p className="truncate text-sm font-bold">{trigger}</p>
-                          <p className="text-xs font-black text-pulse-muted">
+                          <p className="truncate text-sm font-normal">{trigger}</p>
+                          <p className="text-xs font-normal text-pulse-muted">
                             {Math.max(74 - index * 8, 42)}%
                           </p>
                         </div>
@@ -386,8 +386,8 @@ export function SummaryPage() {
                       <Network className="h-5 w-5 text-[#37c77f]" />
                     )}
                     <div>
-                      <p className="text-sm font-black">{trend.label}</p>
-                      <p className="text-xs font-bold text-pulse-muted">
+                      <p className="text-sm font-normal">{trend.label}</p>
+                      <p className="text-xs font-normal text-pulse-muted">
                         {trend.value}
                       </p>
                     </div>
@@ -397,7 +397,7 @@ export function SummaryPage() {
             </Card>
 
             <button
-              className="inline-flex items-center justify-center gap-2 rounded-[20px] border border-pulse-line bg-white/75 px-5 py-4 text-sm font-black shadow-pulse transition hover:-translate-y-0.5 hover:border-pulse-green"
+              className="inline-flex items-center justify-center gap-2 rounded-[20px] border border-pulse-line bg-white/75 px-5 py-4 text-sm font-normal shadow-pulse transition hover:-translate-y-0.5 hover:border-pulse-green"
               onClick={async () => {
                 await navigator.clipboard.writeText(reportText);
                 setShareStatus("Copied report to clipboard");
@@ -413,3 +413,5 @@ export function SummaryPage() {
     </AppShell>
   );
 }
+
+

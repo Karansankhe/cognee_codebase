@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Send, Loader2, Sparkles, User, Brain, Plus, Mic, Image, PenTool, Globe, DatabaseZap, Network } from "lucide-react";
 import { AppShell } from "../../components/layout/AppShell";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
+import { apiUrl } from "../../lib/api";
 
 interface Message {
   sender: "user" | "ai";
@@ -48,7 +49,7 @@ export function GraphPage() {
     setIsQuerying(true);
 
     try {
-      const response = await fetch("/api/v1/query", {
+      const response = await fetch(apiUrl("/api/v1/query"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: text }),
@@ -85,24 +86,24 @@ export function GraphPage() {
       <main className="px-4 pb-5 pt-3 sm:px-6 h-[calc(100vh-2rem)] flex flex-col">
         {/* Header */}
         <div className="mb-4">
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-pulse-muted">
+          <p className="mb-1 text-[10px] font-normal uppercase tracking-[0.16em] text-pulse-muted">
             Knowledge Base
           </p>
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-semibold tracking-normal">
+              <h1 className="text-3xl font-normal tracking-normal">
                 Cognee Memory Graph Assistant
               </h1>
-              <p className="mt-1 text-sm font-medium text-pulse-muted">
+              <p className="mt-1 text-sm font-normal text-pulse-muted">
                 Ask patient-history questions with recall, graph context, and cited memory.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-pulse-green/50 bg-pulse-green/25 px-3 py-1.5 text-xs font-bold text-pulse-ink shadow-sm">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-pulse-green/50 bg-pulse-green/25 px-3 py-1.5 text-xs font-normal text-pulse-ink shadow-sm">
                 <DatabaseZap className="h-3.5 w-3.5" />
                 Cognee recall
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-bold text-cyan-900 shadow-sm">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-normal text-cyan-900 shadow-sm">
                 <Network className="h-3.5 w-3.5" />
                 Graph RAG
               </span>
@@ -116,7 +117,7 @@ export function GraphPage() {
             title="Natural Language Query"
             eyebrow="Interactive Memory"
             action={
-              <div className="flex items-center gap-1.5 rounded-full bg-pulse-mint/20 px-3 py-1 text-xs font-semibold text-pulse-ink">
+              <div className="flex items-center gap-1.5 rounded-full bg-pulse-mint/20 px-3 py-1 text-xs font-normal text-pulse-ink">
                 <Brain className="h-3.5 w-3.5" />
                 Active Dataset
               </div>
@@ -170,7 +171,7 @@ export function GraphPage() {
                   <button
                     type="button"
                     onClick={() => handleSend("Generate a visual health timeline representation from my symptom history")}
-                    className="flex items-center gap-2 rounded-full border border-pulse-line bg-white px-4 py-2 text-xs font-semibold text-pulse-muted/80 transition hover:bg-pulse-mint/20 hover:border-pulse-green shadow-sm cursor-pointer"
+                    className="flex items-center gap-2 rounded-full border border-pulse-line bg-white px-4 py-2 text-xs font-normal text-pulse-muted/80 transition hover:bg-pulse-mint/20 hover:border-pulse-green shadow-sm cursor-pointer"
                   >
                     <Image className="h-3.5 w-3.5 text-pulse-ink" />
                     Create an image
@@ -178,7 +179,7 @@ export function GraphPage() {
                   <button
                     type="button"
                     onClick={() => handleSend("Draft a concise patient diary log summary")}
-                    className="flex items-center gap-2 rounded-full border border-pulse-line bg-white px-4 py-2 text-xs font-semibold text-pulse-muted/80 transition hover:bg-pulse-mint/20 hover:border-pulse-green shadow-sm cursor-pointer"
+                    className="flex items-center gap-2 rounded-full border border-pulse-line bg-white px-4 py-2 text-xs font-normal text-pulse-muted/80 transition hover:bg-pulse-mint/20 hover:border-pulse-green shadow-sm cursor-pointer"
                   >
                     <PenTool className="h-3.5 w-3.5 text-pulse-ink" />
                     Write or edit
@@ -186,7 +187,7 @@ export function GraphPage() {
                   <button
                     type="button"
                     onClick={() => handleSend("Identify other recorded correlation triggers in clinical data")}
-                    className="flex items-center gap-2 rounded-full border border-pulse-line bg-white px-4 py-2 text-xs font-semibold text-pulse-muted/80 transition hover:bg-pulse-mint/20 hover:border-pulse-green shadow-sm cursor-pointer"
+                    className="flex items-center gap-2 rounded-full border border-pulse-line bg-white px-4 py-2 text-xs font-normal text-pulse-muted/80 transition hover:bg-pulse-mint/20 hover:border-pulse-green shadow-sm cursor-pointer"
                   >
                     <Globe className="h-3.5 w-3.5 text-pulse-ink" />
                     Look something up
@@ -195,7 +196,7 @@ export function GraphPage() {
 
                 {/* Suggestion Queries */}
                 <div className="w-full mt-5 max-w-xl">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-pulse-muted text-center mb-3">
+                  <p className="text-[10px] font-normal uppercase tracking-wider text-pulse-muted text-center mb-3">
                     Suggested Queries
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 w-full">
@@ -315,3 +316,5 @@ export function GraphPage() {
     </AppShell>
   );
 }
+
+
