@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Send, Loader2, Sparkles, User, Brain, Plus, Mic, Image, PenTool, Globe } from "lucide-react";
+import { Send, Loader2, Sparkles, User, Brain, Plus, Mic, MicOff, Volume2, Image, PenTool, Globe, DatabaseZap, Network } from "lucide-react";
 import { AppShell } from "../../components/layout/AppShell";
 import { Card, CardBody, CardHeader } from "../../components/ui/Card";
 
@@ -16,6 +16,37 @@ const suggestions = [
   "Are my medications effective?",
 ];
 
+const renderMessageText = (text: string) => {
+  if (!text) return null;
+  const lines = text.split("\n");
+  return lines.map((line, lineIdx) => {
+    const isBullet = line.trim().startsWith("-") || line.trim().startsWith("*");
+    let lineContent = line;
+    if (isBullet) {
+      lineContent = line.replace(/^\s*[-*]\s*/, "");
+    }
+    const parts = lineContent.split(/(\*\*.*?\*\*)/g);
+    const elements = parts.map((part, partIdx) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={partIdx} className="font-bold text-pulse-ink">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+    if (isBullet) {
+      return (
+        <ul key={lineIdx} className="list-disc pl-5 my-1">
+          <li className="text-pulse-ink">{elements}</li>
+        </ul>
+      );
+    }
+    return (
+      <p key={lineIdx} className="min-h-[1.5em] my-1 text-pulse-ink">
+        {elements}
+      </p>
+    );
+  });
+};
+
 export function GraphPage() {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
@@ -26,6 +57,9 @@ export function GraphPage() {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isQuerying, setIsQuerying] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   const handleNavigate = (page: string) => {
     if (page === "Dashboard") {
@@ -34,10 +68,12 @@ export function GraphPage() {
       navigate("/graph");
     } else if (page === "Trends") {
       navigate("/trends");
+    } else if (page === "Summary") {
+      navigate("/summary");
     }
   };
 
-  const handleSend = async (text: string) => {
+  const handleSend = async (text: string, shouldPlayAudio = false) => {
     if (!text.trim()) return;
 
     // Add user message
@@ -54,14 +90,39 @@ export function GraphPage() {
 
       if (!response.ok) throw new Error("Query failed");
       const result = await response.json();
+      const answer = result.graph_answer || "No response received from your memory graph.";
 
       setMessages((prev) => [
         ...prev,
         {
           sender: "ai",
-          text: result.graph_answer || "No response received from your memory graph.",
+          text: answer,
         },
       ]);
+
+      if (shouldPlayAudio && answer) {
+        setIsPlayingAudio(true);
+        try {
+          const ttsResponse = await fetch("/api/v1/text-to-speech", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: answer }),
+          });
+          if (ttsResponse.ok) {
+            const audioBlob = await ttsResponse.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audio.onended = () => setIsPlayingAudio(false);
+            audio.onerror = () => setIsPlayingAudio(false);
+            await audio.play();
+          } else {
+            setIsPlayingAudio(false);
+          }
+        } catch (ttsErr) {
+          console.error("TTS playback failed:", ttsErr);
+          setIsPlayingAudio(false);
+        }
+      }
     } catch (err) {
       console.error(err);
       setMessages((prev) => [
@@ -76,6 +137,76 @@ export function GraphPage() {
     }
   };
 
+  const handleMicClick = async () => {
+    if (isRecording) {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+        setIsRecording(false);
+      }
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new MediaRecorder(stream);
+        const chunks: Blob[] = [];
+
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) {
+            chunks.push(e.data);
+          }
+        };
+
+        recorder.onstop = async () => {
+          const audioBlob = new Blob(chunks, { type: "audio/webm" });
+          setIsQuerying(true);
+          setMessages((prev) => [...prev, { sender: "ai", text: "Transcribing your voice..." }]);
+
+          try {
+            const formData = new FormData();
+            formData.append("file", audioBlob, "voice_input.webm");
+
+            const sttResponse = await fetch("/api/v1/speech-to-text", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (!sttResponse.ok) throw new Error("STT translation failed");
+            const sttResult = await sttResponse.json();
+            const text = sttResult.text || "";
+
+            setMessages((prev) => prev.slice(0, -1));
+
+            if (!text.trim()) {
+              setMessages((prev) => [
+                ...prev,
+                { sender: "ai", text: "Sorry, I couldn't hear or understand anything." }
+              ]);
+              setIsQuerying(false);
+              return;
+            }
+
+            await handleSend(text, true);
+          } catch (err) {
+            console.error(err);
+            setMessages((prev) => [
+              ...prev.slice(0, -1),
+              { sender: "ai", text: "Encountered an error transcribing your query." }
+            ]);
+            setIsQuerying(false);
+          }
+
+          stream.getTracks().forEach((track) => track.stop());
+        };
+
+        recorder.start();
+        setMediaRecorder(recorder);
+        setIsRecording(true);
+      } catch (err) {
+        console.error("Could not access microphone:", err);
+        alert("Microphone permission denied or not supported.");
+      }
+    }
+  };
+
   const isLandingState = messages.length <= 1 && !isQuerying;
 
   return (
@@ -86,16 +217,33 @@ export function GraphPage() {
           <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-pulse-muted">
             Knowledge Base
           </p>
-          <h1 className="text-3xl font-semibold tracking-normal">
-            Memory Graph RAG Chat
-          </h1>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="text-3xl font-semibold tracking-normal">
+                Cognee Memory Graph Assistant
+              </h1>
+              <p className="mt-1 text-sm font-medium text-pulse-muted">
+                Ask patient-history questions with recall, graph context, and cited memory.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-pulse-green/50 bg-pulse-green/25 px-3 py-1.5 text-xs font-bold text-pulse-ink shadow-sm">
+                <DatabaseZap className="h-3.5 w-3.5" />
+                Cognee recall
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-bold text-cyan-900 shadow-sm">
+                <Network className="h-3.5 w-3.5" />
+                Graph RAG
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Chat UI Card */}
         <Card className="flex-1 flex flex-col bg-white/70 overflow-hidden min-h-0">
-          <CardHeader 
-            title="Natural Language Query" 
-            eyebrow="Interactive Memory" 
+          <CardHeader
+            title="Natural Language Query"
+            eyebrow="Interactive Memory"
             action={
               <div className="flex items-center gap-1.5 rounded-full bg-pulse-mint/20 px-3 py-1 text-xs font-semibold text-pulse-ink">
                 <Brain className="h-3.5 w-3.5" />
@@ -104,14 +252,14 @@ export function GraphPage() {
             }
           />
           <CardBody className="flex-1 flex flex-col justify-between overflow-hidden p-5 gap-4">
-            
+
             {isLandingState ? (
               /* Gemini style landing view */
               <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full gap-6 select-none">
                 <h2 className="text-3xl font-light text-pulse-ink/90 text-center font-sans tracking-tight">
                   Ready when you are.
                 </h2>
-                
+
                 {/* Search Bar Input Pill */}
                 <form
                   onSubmit={(e) => {
@@ -123,7 +271,7 @@ export function GraphPage() {
                   <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
                     <Plus className="h-5 w-5" />
                   </button>
-                  
+
                   <input
                     type="text"
                     placeholder="Ask anything"
@@ -131,11 +279,15 @@ export function GraphPage() {
                     onChange={(e) => setInputValue(e.target.value)}
                     className="flex-1 bg-transparent text-sm text-pulse-ink outline-none placeholder:text-pulse-muted/80"
                   />
-                  
-                  <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
-                    <Mic className="h-5 w-5" />
+
+                  <button
+                    type="button"
+                    onClick={handleMicClick}
+                    className={`transition cursor-pointer p-1.5 rounded-full ${isRecording ? "text-red-500 bg-red-500/10 animate-pulse" : "text-pulse-muted hover:text-pulse-ink"}`}
+                  >
+                    {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                   </button>
-                  
+
                   <button
                     type="submit"
                     className="grid h-9 w-9 place-items-center rounded-full bg-black text-white hover:bg-pulse-ink transition shadow-sm cursor-pointer"
@@ -146,33 +298,7 @@ export function GraphPage() {
                   </button>
                 </form>
 
-                {/* Gemini style horizontal action chips */}
-                <div className="flex flex-wrap items-center justify-center gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => handleSend("Generate a visual health timeline representation from my symptom history")}
-                    className="flex items-center gap-2 rounded-full border border-pulse-line bg-white px-4 py-2 text-xs font-semibold text-pulse-muted/80 transition hover:bg-pulse-mint/20 hover:border-pulse-green shadow-sm cursor-pointer"
-                  >
-                    <Image className="h-3.5 w-3.5 text-pulse-ink" />
-                    Create an image
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSend("Draft a concise patient diary log summary")}
-                    className="flex items-center gap-2 rounded-full border border-pulse-line bg-white px-4 py-2 text-xs font-semibold text-pulse-muted/80 transition hover:bg-pulse-mint/20 hover:border-pulse-green shadow-sm cursor-pointer"
-                  >
-                    <PenTool className="h-3.5 w-3.5 text-pulse-ink" />
-                    Write or edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSend("Identify other recorded correlation triggers in clinical data")}
-                    className="flex items-center gap-2 rounded-full border border-pulse-line bg-white px-4 py-2 text-xs font-semibold text-pulse-muted/80 transition hover:bg-pulse-mint/20 hover:border-pulse-green shadow-sm cursor-pointer"
-                  >
-                    <Globe className="h-3.5 w-3.5 text-pulse-ink" />
-                    Look something up
-                  </button>
-                </div>
+                {/* Action chips removed */}
 
                 {/* Suggestion Queries */}
                 <div className="w-full mt-5 max-w-xl">
@@ -201,29 +327,26 @@ export function GraphPage() {
                   {messages.map((msg, idx) => (
                     <div
                       key={idx}
-                      className={`flex items-start gap-3 max-w-[85%] ${
-                        msg.sender === "user" ? "ml-auto flex-row-reverse" : ""
-                      }`}
+                      className={`flex items-start gap-3 max-w-[85%] ${msg.sender === "user" ? "ml-auto flex-row-reverse" : ""
+                        }`}
                     >
                       <div
-                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-white ${
-                          msg.sender === "user" ? "bg-pulse-ink" : "bg-pulse-muted"
-                        }`}
+                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-white ${msg.sender === "user" ? "bg-pulse-ink" : "bg-pulse-muted"
+                          }`}
                       >
                         {msg.sender === "user" ? <User className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
                       </div>
                       <div
-                        className={`rounded-[20px] px-4 py-2.5 text-sm leading-6 shadow-sm ${
-                          msg.sender === "user"
+                        className={`rounded-[20px] px-4 py-2.5 text-sm leading-6 shadow-sm ${msg.sender === "user"
                             ? "bg-pulse-ink text-white"
                             : "bg-pulse-mint/20 border border-pulse-green/20 text-pulse-ink"
-                        }`}
+                          }`}
                       >
-                        <p className="whitespace-pre-wrap">{msg.text}</p>
+                        {renderMessageText(msg.text)}
                       </div>
                     </div>
                   ))}
-                  
+
                   {isQuerying && (
                     <div className="flex items-start gap-3 max-w-[85%]">
                       <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-pulse-muted text-white">
@@ -250,7 +373,7 @@ export function GraphPage() {
                     <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
                       <Plus className="h-5 w-5" />
                     </button>
-                    
+
                     <input
                       type="text"
                       placeholder="Ask anything..."
@@ -259,11 +382,15 @@ export function GraphPage() {
                       disabled={isQuerying}
                       className="flex-1 bg-transparent text-sm text-pulse-ink outline-none placeholder:text-pulse-muted"
                     />
-                    
-                    <button type="button" className="text-pulse-muted hover:text-pulse-ink transition cursor-pointer">
-                      <Mic className="h-5 w-5" />
+
+                    <button
+                      type="button"
+                      onClick={handleMicClick}
+                      className={`transition cursor-pointer p-1.5 rounded-full ${isRecording ? "text-red-500 bg-red-500/10 animate-pulse" : "text-pulse-muted hover:text-pulse-ink"}`}
+                    >
+                      {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                     </button>
-                    
+
                     <button
                       type="submit"
                       disabled={isQuerying || !inputValue.trim()}
@@ -272,6 +399,20 @@ export function GraphPage() {
                       <Send className="h-4.5 w-4.5" />
                     </button>
                   </form>
+
+                  {isPlayingAudio && (
+                    <div className="flex items-center justify-center gap-2 text-xs text-pulse-green font-semibold bg-pulse-green/10 py-1.5 px-3 rounded-full animate-pulse max-w-xs mx-auto">
+                      <Volume2 className="h-4 w-4 animate-bounce" />
+                      <span>Reading response aloud...</span>
+                    </div>
+                  )}
+
+                  {isRecording && (
+                    <div className="flex items-center justify-center gap-2 text-xs text-red-500 font-semibold bg-red-500/10 py-1.5 px-3 rounded-full animate-pulse max-w-xs mx-auto">
+                      <span className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
+                      <span>Recording voice query... Click Mic again to stop.</span>
+                    </div>
+                  )}
 
                   {/* Suggestion cards (small horizontal chips below input during chat) */}
                   <div>

@@ -20,11 +20,11 @@ export function ConfidencePanel({ pattern }: ConfidencePanelProps) {
             }}
           >
             <div className="grid h-14 w-14 place-items-center rounded-full bg-white">
-              <span className="text-lg font-semibold">{score}%</span>
+              <span className="text-lg font-normal">{score}%</span>
             </div>
           </div>
           <div>
-            <p className="text-xs font-semibold text-pulse-muted">
+            <p className="text-xs font-normal text-pulse-muted">
               Pattern strength
             </p>
             <p className="mt-0.5 text-xl font-light tracking-normal">
@@ -37,7 +37,7 @@ export function ConfidencePanel({ pattern }: ConfidencePanelProps) {
           </div>
         </div>
         <div className="rounded-[16px] bg-white p-3">
-          <p className="text-xs font-semibold text-pulse-muted">
+          <p className="text-xs font-normal text-pulse-muted">
             Sample size
           </p>
           <p className="mt-1 text-lg font-light">
@@ -51,3 +51,5 @@ export function ConfidencePanel({ pattern }: ConfidencePanelProps) {
     </Card>
   );
 }
+
+

@@ -28,14 +28,14 @@ export function TimelineFeed({ entries }: TimelineFeedProps) {
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h3 className="text-sm font-semibold leading-5">{entry.title}</h3>
+                  <h3 className="text-sm font-normal leading-5">{entry.title}</h3>
                   <p className="mt-0.5 line-clamp-1 text-xs leading-5 text-pulse-muted">
                     {entry.description}
                   </p>
                 </div>
                 <Badge tone={entryTone[entry.type]}>{entry.type}</Badge>
               </div>
-              <div className="mt-0.5 flex flex-wrap gap-2 text-[10px] font-medium uppercase tracking-[0.12em] text-pulse-muted">
+              <div className="mt-0.5 flex flex-wrap gap-2 text-[10px] font-normal uppercase tracking-[0.12em] text-pulse-muted">
                 <span>{entry.occurredAt}</span>
                 <span>-</span>
                 <span>{entry.source}</span>
@@ -50,3 +50,5 @@ export function TimelineFeed({ entries }: TimelineFeedProps) {
     </Card>
   );
 }
+
+

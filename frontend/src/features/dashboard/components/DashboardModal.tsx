@@ -28,10 +28,10 @@ export function DashboardModal({
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-pulse-muted">
+            <p className="text-[10px] font-normal uppercase tracking-[0.16em] text-pulse-muted">
               {eyebrow}
             </p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-normal">
+            <h2 className="mt-1 text-2xl font-normal tracking-normal">
               {title}
             </h2>
           </div>
@@ -48,14 +48,14 @@ export function DashboardModal({
 
         <div className="mt-5 flex justify-end gap-2">
           <button
-            className="rounded-full bg-pulse-surface px-4 py-2 text-sm font-medium"
+            className="rounded-full bg-pulse-surface px-4 py-2 text-sm font-normal"
             onClick={onClose}
             type="button"
           >
             Cancel
           </button>
           <button
-            className="rounded-full bg-pulse-green px-5 py-2 text-sm font-semibold text-pulse-ink"
+            className="rounded-full bg-pulse-green px-5 py-2 text-sm font-normal text-pulse-ink"
             type="submit"
           >
             Save
@@ -83,7 +83,7 @@ export function ModalField({
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-semibold text-pulse-muted">{label}</span>
+      <span className="text-xs font-normal text-pulse-muted">{label}</span>
       <input
         className="mt-2 w-full rounded-full border border-pulse-line bg-white px-4 py-2.5 text-sm outline-none transition focus:border-pulse-ink"
         name={name}
@@ -111,7 +111,7 @@ export function ModalTextArea({
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-semibold text-pulse-muted">{label}</span>
+      <span className="text-xs font-normal text-pulse-muted">{label}</span>
       <textarea
         className="mt-2 min-h-28 w-full resize-none rounded-[22px] border border-pulse-line bg-white px-4 py-3 text-sm outline-none transition focus:border-pulse-ink"
         name={name}
@@ -122,3 +122,5 @@ export function ModalTextArea({
     </label>
   );
 }
+
+

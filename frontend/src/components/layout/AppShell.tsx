@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
+import pulseLogo from "../../assets/pulse-logo.png";
 
 interface AppShellProps {
   activePage?: string;
@@ -8,12 +10,9 @@ interface AppShellProps {
 
 const navItems = [
   "Dashboard",
-  "Log",
   "Graph",
   "Trends",
   "Summary",
-  "Share",
-  "Data controls",
 ];
 
 export function AppShell({
@@ -33,23 +32,29 @@ export function AppShell({
         <aside
           className="peer/sidebar group/sidebar relative z-20 hidden w-[72px] shrink-0 overflow-hidden px-3 py-5 transition-all duration-300 hover:w-56 lg:block"
         >
-          <div className="mb-7 flex items-center gap-3">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pulse-ink text-base font-black text-white">
-              P
-            </div>
+          <Link
+            className="mb-7 flex items-center gap-3 rounded-2xl outline-none transition hover:opacity-85 focus-visible:ring-2 focus-visible:ring-pulse-ink"
+            to="/"
+            aria-label="Pulse home"
+          >
+            <img
+              alt=""
+              className="h-10 w-10 shrink-0 rounded-2xl object-contain shadow-sm"
+              src={pulseLogo}
+            />
             <div className="w-36 opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100">
-              <p className="text-lg font-semibold tracking-normal">Pulse</p>
-              <p className="text-xs font-medium uppercase tracking-[0.12em] text-pulse-muted">
+              <p className="text-lg font-normal tracking-normal">Pulse</p>
+              <p className="text-xs font-normal uppercase tracking-[0.12em] text-pulse-muted">
                 Personal memory
               </p>
             </div>
-          </div>
+          </Link>
 
           <nav className="space-y-1.5">
             {navItems.map((item) => (
               <button
                 key={item}
-                className={`flex w-full items-center gap-3 rounded-full px-3 py-2.5 text-left text-sm font-medium transition ${
+                className={`flex w-full items-center gap-3 rounded-full px-3 py-2.5 text-left text-sm font-normal transition ${
                   item === activePage
                     ? "bg-white text-pulse-ink shadow-sm"
                     : "text-pulse-muted hover:bg-white/60 hover:text-pulse-ink"
@@ -72,7 +77,7 @@ export function AppShell({
           <div
             className="mt-7 w-48 rounded-[20px] bg-white/70 p-3 opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100"
           >
-            <p className="text-sm font-semibold">Live session</p>
+            <p className="text-sm font-normal">Live session</p>
             <p className="mt-1 text-xs leading-5 text-pulse-muted">
               Streaming wearable and symptom signals.
             </p>
@@ -85,3 +90,5 @@ export function AppShell({
     </div>
   );
 }
+
+

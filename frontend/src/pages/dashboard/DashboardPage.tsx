@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, DownloadCloud } from "lucide-react";
 import { AppShell } from "../../components/layout/AppShell";
+import { apiUrl } from "../../lib/api";
 import { getDashboardData } from "../../features/dashboard/api/dashboard.api";
 import { ConfidencePanel } from "../../features/dashboard/components/ConfidencePanel";
 import {
@@ -11,7 +12,6 @@ import {
 } from "../../features/dashboard/components/DashboardModal";
 import { DashboardHeader } from "../../features/dashboard/components/DashboardHeader";
 import { EvidenceList } from "../../features/dashboard/components/EvidenceList";
-import { EvaluationHarness } from "../../features/dashboard/components/EvaluationHarness";
 import { InsightCard } from "../../features/dashboard/components/InsightCard";
 import { LiveGraphPanel } from "../../features/dashboard/components/LiveGraphPanel";
 import { PatientSnapshot } from "../../features/dashboard/components/PatientSnapshot";
@@ -20,6 +20,7 @@ import { TreatmentEffectivenessPanel } from "../../features/dashboard/components
 import { TimelineFeed } from "../../features/dashboard/components/TimelineFeed";
 import { TrendsPanel } from "../../features/dashboard/components/TrendsPanel";
 import { WearableSummaryPanel } from "../../features/dashboard/components/WearableSummaryPanel";
+import { EvaluationHarness } from "../../features/dashboard/components/EvaluationHarness";
 import type {
   DashboardData,
   EvidenceCitation,
@@ -62,19 +63,43 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       navigate("/graph");
     } else if (page === "Trends") {
       navigate("/trends");
+    } else if (page === "Summary") {
+      navigate("/summary");
     } else if (onNavigate) {
       onNavigate(page);
     }
   };
 
   useEffect(() => {
-    void getDashboardData().then(setData);
+    void getDashboardData().then((mockData) => {
+      // Create a shallow copy of mockData to prevent mutating shared imports
+      const updatedData = { ...mockData };
+      const stored = localStorage.getItem("pulse_insights");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed.accuracy_score !== undefined) {
+            updatedData.activePattern = {
+              ...updatedData.activePattern,
+              consistency: {
+                score: parsed.accuracy_score,
+                matchedEpisodes: parsed.matched_episodes ?? 4,
+                totalEpisodes: parsed.total_episodes ?? 5,
+              }
+            };
+          }
+        } catch (err) {
+          console.error("Failed to parse stored insights for confidence panel", err);
+        }
+      }
+      setData(updatedData);
+    });
   }, []);
 
   const handleGenerateSummary = async () => {
     setIsGeneratingSummary(true);
     try {
-      const response = await fetch("/api/v1/generate_summary");
+      const response = await fetch(apiUrl("/api/v1/generate_summary"));
       if (!response.ok) throw new Error("Failed to generate summary");
       const result = await response.json();
       setSummaryText(result.summary || "No summary returned.");
@@ -90,7 +115,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     if (!summaryText) return;
     setIsDownloadingSummary(true);
     try {
-      const response = await fetch("/api/v1/summary/pdf", {
+      const response = await fetch(apiUrl("/api/v1/summary/pdf"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ summary: summaryText }),
@@ -115,21 +140,21 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
   const parsedSections = summaryText
     ? (() => {
-        // Match sections starting with **Header** or a digit-numbered heading (e.g. 1. Header)
-        const pattern = /(?=\n\*\*[^*]+\*\*|\n\d+\.\s+[A-Za-z ]+)/g;
-        // Prepend a newline so the first section aligns with the pattern if needed
-        const segments = ("\n" + summaryText).split(pattern);
-        return segments
-          .map((sec) => {
-            const trimmed = sec.trim();
-            const lines = trimmed.split("\n");
-            const rawTitle = lines[0] || "";
-            const title = rawTitle.replace(/\*\*/g, "").replace(/^\d+\.\s+/, "").trim();
-            const content = lines.slice(1).join("\n").trim();
-            return { title, content };
-          })
-          .filter((s) => s.title && s.content);
-      })()
+      // Match sections starting with **Header** or a digit-numbered heading (e.g. 1. Header)
+      const pattern = /(?=\n\*\*[^*]+\*\*|\n\d+\.\s+[A-Za-z ]+)/g;
+      // Prepend a newline so the first section aligns with the pattern if needed
+      const segments = ("\n" + summaryText).split(pattern);
+      return segments
+        .map((sec) => {
+          const trimmed = sec.trim();
+          const lines = trimmed.split("\n");
+          const rawTitle = lines[0] || "";
+          const title = rawTitle.replace(/\*\*/g, "").replace(/^\d+\.\s+/, "").trim();
+          const content = lines.slice(1).join("\n").trim();
+          return { title, content };
+        })
+        .filter((s) => s.title && s.content);
+    })()
     : [];
 
   if (!data) {
@@ -137,7 +162,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       <AppShell activePage="Dashboard" onNavigate={onNavigate}>
         <div className="grid min-h-screen place-items-center px-5">
           <div className="rounded-lg border border-pulse-line bg-white px-5 py-4 shadow-pulse">
-            <p className="text-sm font-bold text-pulse-muted">
+            <p className="text-sm font-normal text-pulse-muted">
               Loading Pulse memory...
             </p>
           </div>
@@ -162,13 +187,43 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const handleSymptomSubmit = () => {
     const symptom = symptomForm.symptom.trim() || "New symptom";
     const notes = symptomForm.notes.trim() || "Symptom logged from dashboard.";
+    const time = symptomForm.time.trim() || "Today, " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+    // Call backend API in background
+    void fetch("/api/v1/log-symptom", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        symptom_name: symptom,
+        logged_at: time,
+        severity: "moderate",
+        notes: notes,
+      }),
+    }).catch((err) => console.error("Failed to sync symptom to backend:", err));
 
     addEntry({
-      date: symptomForm.time.trim() || "Just now",
+      date: time,
       event: `${symptom} - ${notes}`,
       id: `symptom-${Date.now()}`,
       relationship: "supports",
       source: "Patient log",
+    });
+
+    setData((currentData) => {
+      if (!currentData) return currentData;
+      const newTimelineEntry = {
+        id: `symptom-timeline-${Date.now()}`,
+        type: "symptom" as const,
+        title: `${symptom} logged`,
+        description: notes,
+        languageCode: "EN" as const,
+        occurredAt: time,
+        source: "Patient log",
+      };
+      return {
+        ...currentData,
+        timeline: [newTimelineEntry, ...currentData.timeline],
+      };
     });
 
     setSymptomForm(initialSymptomForm);
@@ -179,13 +234,64 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     const treatment = outcomeForm.treatment.trim() || "Treatment";
     const result = outcomeForm.result.trim() || "Outcome recorded";
     const notes = outcomeForm.notes.trim() || "Follow-up result added.";
+    const time = "Today, " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+    // Call backend API in background
+    void fetch("/api/v1/log-outcome", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        treatment: treatment,
+        result: result,
+        follow_up_notes: notes,
+      }),
+    }).catch((err) => console.error("Failed to sync outcome to backend:", err));
 
     addEntry({
-      date: "Just now",
+      date: time,
       event: `${treatment} - ${result}. ${notes}`,
       id: `outcome-${Date.now()}`,
       relationship: "improved",
       source: "Treatment outcome",
+    });
+
+    setData((currentData) => {
+      if (!currentData) return currentData;
+      const newTimelineEntry = {
+        id: `outcome-timeline-${Date.now()}`,
+        type: "treatment" as const,
+        title: `${treatment} and rest recorded`,
+        description: `${result}. ${notes}`,
+        languageCode: "EN" as const,
+        occurredAt: time,
+        source: "Treatment outcome",
+      };
+
+      const resultLower = result.toLowerCase();
+      const isHelped =
+        resultLower.includes("improved") ||
+        resultLower.includes("better") ||
+        resultLower.includes("helped") ||
+        resultLower.includes("resolved") ||
+        resultLower.includes("effective");
+
+      const prevEffectiveness = currentData.activePattern.treatmentEffectiveness;
+      const helpedAttempts = prevEffectiveness.helpedAttempts + (isHelped ? 1 : 0);
+      const totalAttempts = prevEffectiveness.totalAttempts + 1;
+      const score = Math.round((helpedAttempts / totalAttempts) * 100);
+
+      return {
+        ...currentData,
+        timeline: [newTimelineEntry, ...currentData.timeline],
+        activePattern: {
+          ...currentData.activePattern,
+          treatmentEffectiveness: {
+            helpedAttempts,
+            totalAttempts,
+            score,
+          },
+        },
+      };
     });
 
     setOutcomeForm(initialOutcomeForm);
@@ -216,9 +322,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         citations: currentData.citations.map((entry) =>
           entry.id === id
             ? {
-                ...entry,
-                event: "Sensitive note redacted. Relationship metadata retained.",
-              }
+              ...entry,
+              event: "Sensitive note redacted. Relationship metadata retained.",
+            }
             : entry,
         ),
       };
@@ -228,18 +334,18 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const handleWearableSync = async () => {
     setIsSyncingWearable(true);
     try {
-      const response = await fetch("/api/v1/wearable/sync", {
+      const response = await fetch(apiUrl("/api/v1/wearable/sync"), {
         method: "POST"
       });
       if (!response.ok) throw new Error("Sync failed");
       const result = await response.json();
-      
+
       const pattern = result.pattern;
       const metrics = result.metrics;
-      
+
       // Save raw metrics data to localStorage for TrendsPage
       localStorage.setItem("pulse_synced_metrics", JSON.stringify(metrics));
-      
+
       setData((currentData) => {
         if (!currentData) return currentData;
         return {
@@ -385,10 +491,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <div className="w-full max-w-2xl rounded-[28px] border border-white/70 bg-white/95 p-6 shadow-[0_30px_90px_rgba(20,20,24,0.25)] flex flex-col max-h-[85vh]">
             <div className="flex items-start justify-between gap-4 border-b border-pulse-line pb-4">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-pulse-muted">
+                <p className="text-[10px] font-normal uppercase tracking-[0.16em] text-pulse-muted">
                   Doctor-Ready Summary
                 </p>
-                <h2 className="mt-1 text-2xl font-semibold tracking-normal text-pulse-ink">
+                <h2 className="mt-1 text-2xl font-normal tracking-normal text-pulse-ink">
                   Patient Visit & Log History
                 </h2>
               </div>
@@ -408,7 +514,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     key={idx}
                     className="rounded-2xl border border-pulse-green/20 bg-white/80 p-4 shadow-[0_4px_12px_rgba(0,0,0,0.02)]"
                   >
-                    <h3 className="text-sm font-bold text-pulse-ink border-b border-pulse-line pb-1.5 mb-2.5">
+                    <h3 className="text-sm font-normal text-pulse-ink border-b border-pulse-line pb-1.5 mb-2.5">
                       {sec.title}
                     </h3>
                     <div className="text-sm leading-6 text-pulse-muted">
@@ -431,7 +537,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
             <div className="mt-6 flex justify-end gap-2 border-t border-pulse-line pt-4">
               <button
-                className="flex items-center gap-2 rounded-full border border-pulse-line bg-white/80 px-4 py-2 text-sm font-semibold text-pulse-ink shadow-sm transition hover:bg-pulse-green/20 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex items-center gap-2 rounded-full border border-pulse-line bg-white/80 px-4 py-2 text-sm font-normal text-pulse-ink shadow-sm transition hover:bg-pulse-green/20 disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={handleDownloadSummaryPDF}
                 disabled={isDownloadingSummary}
                 type="button"
@@ -444,7 +550,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                 Download PDF
               </button>
               <button
-                className="rounded-full bg-pulse-ink text-white px-6 py-2 text-sm font-semibold transition hover:bg-black"
+                className="rounded-full bg-pulse-ink text-white px-6 py-2 text-sm font-normal transition hover:bg-black"
                 onClick={() => setSummaryText(null)}
                 type="button"
               >
@@ -457,3 +563,5 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     </AppShell>
   );
 }
+
+

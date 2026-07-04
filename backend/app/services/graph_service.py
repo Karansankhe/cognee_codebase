@@ -28,6 +28,8 @@ document submitted by the user — no predefined/hardcoded data.
 import json
 import logging
 import re
+import asyncio
+import tempfile
 from typing import Any, Optional
 
 import httpx
@@ -606,6 +608,9 @@ class CogneeGraphService:
             logger.info(f"[UPLOAD] ✓ Ingestion complete — items_processed={items}")
             logger.info("=" * 60)
 
+            # Trigger memify in the background to return immediately
+            asyncio.create_task(self.memify(data=original_filename))
+
             return {
                 "status": "success",
                 "message": f"{original_filename} ingested and knowledge graph built via Cognee Cloud.",
@@ -667,15 +672,31 @@ class CogneeGraphService:
 
     async def query(self, question: str) -> dict:
         """
-        Answer a medical question from the knowledge graph using /api/v1/recall.
-        Only information from the uploaded document is returned.
+        Answer a medical question from the knowledge graph using GRAPH_COMPLETION search,
+        falling back to recall. Only information from the uploaded document is returned.
         """
         logger.info("-" * 60)
         logger.info(f"[QUERY] Question: '{question}'")
 
+        # Try GRAPH_COMPLETION first
+        try:
+            resp = await _cognee_search(
+                self.base_url, question, "GRAPH_COMPLETION", self.dataset
+            )
+            logger.info(f"[QUERY] Cognee search status: {resp.status_code}")
+            
+            if resp.status_code == 200:
+                answer = _extract_text_from_recall(resp.json())
+                if answer and answer != "No information found for this query.":
+                    logger.info(f"[QUERY] ✓ Answer extracted from search ({len(answer)} chars)")
+                    logger.info("-" * 60)
+                    return {"graph_answer": answer}
+        except Exception as exc:
+            logger.warning(f"[QUERY] GRAPH_COMPLETION search failed: {exc}")
+
+        # Fallback to recall
         try:
             resp = await _cognee_recall(self.base_url, question)
-
             logger.info(f"[QUERY] Cognee recall status: {resp.status_code}")
 
             if resp.status_code in (409, 422):
@@ -687,7 +708,7 @@ class CogneeGraphService:
 
             resp.raise_for_status()
             answer = _extract_text_from_recall(resp.json())
-            logger.info(f"[QUERY] ✓ Answer extracted ({len(answer)} chars)")
+            logger.info(f"[QUERY] ✓ Answer extracted from recall ({len(answer)} chars)")
             logger.info("-" * 60)
             return {"graph_answer": answer}
 
@@ -934,6 +955,9 @@ class CogneeGraphService:
             logger.info(f"[LOG_SYMPTOM] ✓ '{symptom_name}' added to knowledge graph")
             logger.info("-" * 60)
 
+            # Trigger memify in the background to return immediately
+            asyncio.create_task(self.memify(data=f"Symptom log: {symptom_name} ({severity})"))
+
             return {
                 "status": "success",
                 "symptom": symptom_name,
@@ -1109,6 +1133,9 @@ class CogneeGraphService:
             logger.info(f"[LOG_OUTCOME] ✓ Outcome for '{treatment}' added to knowledge graph")
             logger.info("-" * 60)
 
+            # Trigger memify in the background to return immediately
+            asyncio.create_task(self.memify(data=f"Outcome log: {treatment} -> {result}"))
+
             return {
                 "status": "success",
                 "treatment": treatment,
@@ -1131,6 +1158,77 @@ class CogneeGraphService:
                     _os.unlink(tmp_path)
                 except Exception:
                     pass
+
+    async def memify(self, data: str = "", dataset_id: str = "", node_name: list = None) -> dict:
+        """
+        Enrich/memify the knowledge graph by calling /api/v1/memify.
+        """
+        logger.info("=" * 60)
+        logger.info(f"[MEMIFY] Triggering memify for dataset: {self.dataset} | data={data}")
+        
+        payload = {
+            "extractionTasks": [],
+            "enrichmentTasks": [],
+            "data": data or "",
+            "datasetName": self.dataset,
+            "datasetId": dataset_id or "",
+            "nodeName": node_name or [],
+            "runInBackground": True
+        }
+        
+        memify_headers = {
+            "Authorization": f"Bearer {settings.cognee_api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        try:
+            async with httpx.AsyncClient(timeout=300.0, verify=False) as client:
+                resp = await client.post(
+                    "https://api.cognee.ai/api/v1/memify",
+                    headers=memify_headers,
+                    json=payload,
+                )
+            
+            logger.info(f"[MEMIFY] Cognee response status: {resp.status_code}")
+            
+            if resp.status_code == 409:
+                detail = resp.text or "Memify failed on Cognee side."
+                logger.error(f"[MEMIFY] Cognee 409: {detail}")
+                raise RuntimeError(f"Cognee memify error: {detail}")
+                
+            resp.raise_for_status()
+            logger.info(f"[MEMIFY] ✓ Memify completed successfully.")
+            logger.info("=" * 60)
+            return resp.json() if resp.content else {}
+        except Exception as e:
+            logger.error(f"[MEMIFY] Failed: {e}")
+            return {"status": "failed", "error": str(e)}
+
+    async def reset_dataset(self) -> dict:
+        """
+        Delete the entire dataset in Cognee Cloud (equivalent to forget/pruning).
+        """
+        logger.info(f"[RESET] Calling forget on dataset '{self.dataset}' in Cognee Cloud...")
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                resp = await client.post(
+                    f"{self.base_url}/api/v1/forget",
+                    headers=_base_headers(json_body=True),
+                    json={
+                        "dataset": self.dataset
+                    }
+                )
+            logger.info(f"[RESET] Cognee forget response status: {resp.status_code}")
+            if resp.status_code not in (200, 204, 404):
+                logger.error(f"[RESET] Failed to forget dataset: {resp.text}")
+                raise RuntimeError(f"Cognee forget error: {resp.text}")
+            return {"status": "success", "message": f"Dataset '{self.dataset}' forgotten from Cognee Cloud."}
+        except httpx.HTTPStatusError as exc:
+            logger.error(f"[RESET] HTTP error forgetting dataset: {exc.response.text}", exc_info=True)
+            raise RuntimeError(f"Cognee API error {exc.response.status_code}: {exc.response.text}") from exc
+        except Exception as exc:
+            logger.error(f"[RESET] Unexpected error resetting dataset: {exc}", exc_info=True)
+            raise exc
 
 
 # ── Singleton ─────────────────────────────────────────────────────────────────
