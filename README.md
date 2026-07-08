@@ -1,6 +1,6 @@
 # Pulse - Stateful AI Health Assistant
 
-Pulse is an intelligent, voice-driven health assistant that solves the "statefulness" problem in modern digital health. While most AI assistants require patients to repeat their history, symptoms, and medications every session, Pulse leverages **Cognee** to build a persistent, personalized medical memory graph.
+Pulse is an intelligent, voice-driven health asistant that solves the "statefulness" problem in modern digital health. While most AI assistants require patients to repeat their history, symptoms, and medications every session, Pulse leverages **Cognee** to build a persistent, personalized medical memory graph.
 
 ## Why Pulse? (The Cognee Advantage)
 
